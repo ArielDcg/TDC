@@ -1,14 +1,439 @@
-\documentclass{article}
-\usepackage{graphicx} % Required for inserting images
+%% ============================================================
+%%  TALLER 1 - CONTROL ROBUSTO: VEHICULO AEREO NO TRIPULADO
+%%  Compilar con: pdflatex  (Overleaf funciona tal cual)
+%% ============================================================
+\documentclass[11pt,letterpaper]{article}
 
-\title{TDC_Taller1}
-\author{Ariel Cardenas}
-\date{October 2026}
+% ---------- Codificacion e idioma ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
 
+% ---------- Pagina ----------
+\usepackage[top=2.5cm,bottom=2.3cm,left=2.3cm,right=2.3cm,headheight=28pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{setspace}
+\setstretch{1.12}
+
+% ---------- Matematicas ----------
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}}
+
+% ---------- Graficos y tablas ----------
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\graphicspath{{Imagenes/}}
+
+% ---------- Codigo MATLAB ----------
+\usepackage{listings}
+
+\definecolor{mlkeyword}{RGB}{0,0,255}
+\definecolor{mlcomment}{RGB}{0,128,0}
+\definecolor{mlstring}{RGB}{160,32,240}
+\definecolor{mlbg}{RGB}{248,248,248}
+
+\lstdefinestyle{matlabstyle}{
+  language=Matlab,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{mlkeyword}\bfseries,
+  commentstyle=\color{mlcomment}\itshape,
+  stringstyle=\color{mlstring},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  backgroundcolor=\color{mlbg},
+  frame=single,
+  rulecolor=\color{black!25},
+  breaklines=true,
+  breakatwhitespace=false,
+  tabsize=4,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  xleftmargin=14pt,
+  captionpos=b,
+  literate=
+    {a}{{\'{a}}}1 {e}{{\'{e}}}1 {i}{{\'{i}}}1 {o}{{\'{o}}}1 {u}{{\'{u}}}1
+    {A}{{\'{A}}}1 {E}{{\'{E}}}1 {I}{{\'{I}}}1 {O}{{\'{O}}}1 {U}{{\'{U}}}1
+    {n}{{\~{n}}}1 {N}{{\~{N}}}1
+}
+
+\lstset{style=matlabstyle}
+\renewcommand{\lstlistingname}{C\'{o}digo}
+
+\lstdefinestyle{salida}{
+  style=matlabstyle, language={}, numbers=none,
+  backgroundcolor=\color{white}, frame=leftline,
+  commentstyle=\color{black}, xleftmargin=6pt
+}
+
+% ---------- Listas y enlaces ----------
+\usepackage{enumitem}
+\setlist[enumerate,1]{label=\textbf{\arabic*.},leftmargin=*}
+\setlist[enumerate,2]{label=\textbf{\alph*)},leftmargin=1.8em}
+\usepackage[hidelinks]{hyperref}
+
+% ============================================================
+%  DATOS DEL TRABAJO
+% ============================================================
+\newcommand{\universidad}{Universidad Nacional de Colombia}
+\newcommand{\facultad}{Facultad de Ingenier\'{\i}a}
+\newcommand{\departamento}{Departamento de Ingenier\'{\i}a Mec\'anica y Mecatr\'onica}
+\newcommand{\programa}{Ingenier\'{\i}a Mecatr\'onica}
+\newcommand{\curso}{Teor\'{\i}a de Control}
+\newcommand{\tipo}{Taller N.\textsuperscript{o}~1}
+\newcommand{\profesor}{Prof.\ Jorge Iv\'an Sofrony Esmeral}
+\newcommand{\periodo}{2026-II}
+\newcommand{\fecha}{8 de octubre de 2026}
+
+\newcommand{\nombregrupo}{La banda del club de los corazones solitarios del Sargento Pepper}
+
+% Integrantes
+\newcommand{\integranteA}{Samuel David Negrete Lancheros}
+\newcommand{\integranteB}{Jes\'us David S\'anchez Cobos}
+\newcommand{\integranteC}{Leonardo Acevedo Monroy}
+\newcommand{\integranteD}{Ariel C\'ardenas}
+
+% Correos (completar)
+\newcommand{\correoA}{\textit{correo@unal.edu.co}}
+\newcommand{\correoB}{\textit{correo@unal.edu.co}}
+\newcommand{\correoC}{\textit{correo@unal.edu.co}}
+\newcommand{\correoD}{\textit{correo@unal.edu.co}}
+
+% ============================================================
+%  ENCABEZADO Y PIE
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\textbf{\curso}}
+\chead{\small\tipo}
+\rhead{\small\periodo}
+\lfoot{\small\departamento{} -- \programa}
+\rfoot{\small P\'agina~\thepage\ de~\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ============================================================
+%  MACROS
+% ============================================================
+\newcommand{\pts}[1]{\hfill\textcolor{gray}{\small\textbf{[#1~pts]}}}
+\newcommand{\dd}{\,\mathrm{d}}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+\newtcolorbox{enunciado}{
+  enhanced, breakable, colback=blue!4, colframe=blue!50!black,
+  boxrule=0.5pt, arc=3pt, left=6pt, right=6pt, top=4pt, bottom=4pt,
+  title=Enunciado, fonttitle=\small\bfseries
+}
+
+\newcommand{\desarrollo}{\subsection*{Desarrollo}}
+\newcommand{\implementacion}{\subsection*{Implementaci\'on en MATLAB}}
+\newcommand{\resultados}{\subsection*{Resultados}}
+\newcommand{\analisis}{\subsection*{An\'alisis}}
+
+\newcommand{\figura}[4]{%
+  \begin{figure}[H]
+    \centering
+    \includegraphics[width=#2\linewidth]{#1}
+    \caption{#3}\label{#4}
+  \end{figure}}
+
+\newcommand{\codigom}[3]{%
+  \lstinputlisting[caption={#2},label={#3}]{#1}}
+
+\numberwithin{equation}{section}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+% ============================================================
 \begin{document}
 
-\maketitle
+% ---------- Portada ----------
+\begin{center}
+  {\large\bfseries \universidad}\\[2pt]
+  {\normalsize \facultad}\\[1pt]
+  {\normalsize \departamento}\\[1pt]
+  {\normalsize \programa}\\[10pt]
+  %\includegraphics[width=0.18\linewidth]{LogoUnalpng.png}\\[8pt]
+  {\Large\bfseries \curso}\\[2pt]
+  {\large \tipo}\\[14pt]
+  \begin{tcolorbox}[enhanced, colback=black!4, colframe=black!60,
+      boxrule=0.6pt, arc=3pt, width=\linewidth, halign=center]
+    {\LARGE\bfseries \nombregrupo}
+  \end{tcolorbox}
+\end{center}
 
-\section{Introduction}
+\vspace{0.3cm}
+
+% ---------- Integrantes ----------
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\begin{tabularx}{\linewidth}{
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X}
+  \toprule
+  \textbf{\integranteA} &
+  \textbf{\integranteB} &
+  \textbf{\integranteC} &
+  \textbf{\integranteD} \\[2pt]
+  \correoA & \correoB & \correoC & \correoD \\
+  \bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+  \small \profesor \quad$\bullet$\quad \periodo \quad$\bullet$\quad \fecha
+\end{center}
+
+\vspace{0.1cm}
+\hrule
+\vspace{0.4cm}
+
+% ============================================================
+\section*{Introducci\'on}
+% ============================================================
+
+El presente taller aborda el dise\~no y comparaci\'on de dos estrategias de control para un \textbf{Veh\'iculo A\'ereo No Tripulado (UAV)}: un controlador cl\'asico tipo $PI+D$ basado en el esquema SAS/CAS, y un controlador robusto $\mathcal{H}_\infty$. El objetivo central es el \textit{seguimiento de referencias de posici\'on angular} (\textit{set-point tracking}) en el rango $[-40°, 40°]$ para los \'angulos de cabeceo~$\theta$ y alabeo~$\phi$, garantizando al mismo tiempo rechazo de ruido de medici\'on e incertidumbre aditiva inversa.
+
+La planta corresponde a un modelo lineal nominal de UAV. El eje \textbf{lateral/direccional} tiene como entradas el aler\'on~$\delta_a$ y el tim\'on de direcci\'on~$\delta_r$, y como salidas el alabeo~$\phi$, la gui\~nada~$\psi$ y sus tasas~$(r,p)$. El eje \textbf{longitudinal} tiene como entrada el elevador~$\delta_e$ y como salida el \'angulo de cabeceo~$\theta$ y su tasa~$q$. Los ejes se tratan como desacoplados para el dise\~no y acoplados para la simulaci\'on.
+
+Las \textbf{especificaciones de dise\~no} son:
+\begin{itemize}[leftmargin=*,noitemsep]
+  \item \textbf{Seguimiento:} ancho de banda m\'inimo $\omega_{BW} \geq 8\,\text{Hz}$; referencia de velocidad angular nula.
+  \item \textbf{Robustez:} rechazo de perturbaciones de entrada hasta $\omega_{p,\max} = 6\,\text{Hz}$.
+  \item \textbf{Rechazo de ruido:} ruido blanco con potencia $0{,}001$ (eje lateral/direccional) y $0{,}0001$ (eje longitudinal).
+  \item \textbf{Esfuerzo de control:} se\~nal m\'inima posible, $|\delta| \leq 30°$.
+  \item Sistema cr\'iticamente amortiguado y ejes desacoplados.
+\end{itemize}
+
+\vspace{0.2cm}
+\hrule
+\vspace{0.3cm}
+
+% ============================================================
+\section{Dise\~no de controladores $PI+D$}
+% ============================================================
+
+El dise\~no de los controladores $PI+D$ se lleva a cabo con el esquema de control SAS/CAS.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.6\linewidth]{SAS_CAS.png}
+    \caption{Esquema de control SAS/CAS.}
+    \label{fig:SAS_CAS}
+\end{figure}
+
+Con este esquema, el \textbf{SAS} (\textit{Stability Augmentation System}) genera amortiguamiento realimentando la tasa angular con ganancia proporcional~$K_\text{SAS}$, moviendo los polos poco amortiguados al semiplano izquierdo y separando la acci\'on derivativa del error para evitar picos grandes en la se\~nal de control. Una vez estabilizado el lazo interno, el \textbf{CAS} (\textit{Command Augmentation System}) agrega un controlador PI para seguir el \textit{setpoint} con error nulo en estado estacionario. La estructura general del controlador es:
+
+\begin{equation}
+  C(s) = C_\text{Lead}(s)\cdot C_\text{PI}(s), \quad
+  C_\text{PI}(s) = K_p\frac{s+a}{s}, \quad
+  C_\text{Lead}(s) = \frac{1+b\,T_2\,s}{1+T_2\,s},\quad b>1
+  \label{eq:controlador_pid}
+\end{equation}
+
+donde la \textbf{red de adelanto de fase} $C_\text{Lead}$ se sintoniza para alcanzar la frecuencia de cruce $\omega_c$ con margen de fase $\phi_m > 30°$.
+
+% -----------------------------------------------------------
+\subsection{Dise\~no para eje longitudinal}
+% -----------------------------------------------------------
+
+\desarrollo
+
+El modelo longitudinal reducido utiliza los estados $[\alpha,\,q]^T$ y la salida de inter\'es es el \'angulo de cabeceo $\theta$ (integraci\'on de $q$). El SAS realimenta $q$ con ganancia:
+\begin{equation}
+  D_\text{long} = -0{,}469
+\end{equation}
+Sobre el lazo interno estabilizado, el PI se sintoniza con:
+\begin{equation}
+  K_{p,\text{long}} = -14, \quad K_{i,\text{long}} = -68\,\text{rad/s}
+\end{equation}
+La red de adelanto se dimensiona para $\omega_c = 29{,}5\,\text{rad/s}$.
+
+\resultados
+% \figura{bode_long}{0.85}{Diagrama de Bode -- lazo abierto longitudinal.}{fig:bode_long}
+% \figura{step_long}{0.85}{Respuesta al escal\'on -- canal longitudinal.}{fig:step_long}
+
+\analisis
+
+% -----------------------------------------------------------
+\subsection{Dise\~no para eje direccional (Yaw)}
+% -----------------------------------------------------------
+
+\desarrollo
+
+El canal direccional regula $\psi$ mediante $\delta_r$. El SAS realimenta la tasa de gui\~nada $r$:
+\begin{equation}
+  k_r = -0{,}174
+\end{equation}
+El PI se sintoniza con cero $a_\text{yaw} = 2\,\text{rad/s}$:
+\begin{equation}
+  K_{p,\text{yaw}} = -1{,}62, \quad K_{i,\text{yaw}} = K_{p,\text{yaw}}\cdot a_\text{yaw} = -3{,}24\,\text{rad/s}
+\end{equation}
+La red de adelanto se sintoniza para $\omega_c = 30\,\text{rad/s}$.
+
+\resultados
+% \figura{bode_yaw}{0.85}{Diagrama de Bode -- lazo abierto direccional.}{fig:bode_yaw}
+% \figura{step_yaw}{0.85}{Respuesta al escal\'on -- canal direccional.}{fig:step_yaw}
+
+\analisis
+
+% -----------------------------------------------------------
+\subsection{Dise\~no para eje lateral (Roll)}
+% -----------------------------------------------------------
+
+\desarrollo
+
+El canal lateral controla $\phi$ mediante $\delta_a$. El SAS realimenta la tasa de alabeo $p$:
+\begin{equation}
+  K_\text{roll} = -0{,}106
+\end{equation}
+La ganancia $K_p$ del PI se obtiene maximiz\'andola tal que todos los polos del lazo cerrado permanezcan en el semiplano izquierdo (lugar de ra\'ices). El cero del PI es $a_\text{roll} = 0{,}0195\,\text{rad/s}$ y la red de adelanto se sintoniza para $\omega_c = 5\,\text{rad/s}$.
+
+\resultados
+% \figura{bode_roll}{0.85}{Diagrama de Bode -- lazo abierto lateral.}{fig:bode_roll}
+% \figura{step_roll}{0.85}{Respuesta al escal\'on -- canal lateral.}{fig:step_roll}
+
+\analisis
+
+% -----------------------------------------------------------
+\subsection{An\'alisis de sensibilidad -- $PI+D$}
+% -----------------------------------------------------------
+
+Para evaluar el desempe\~no nominal y la robustez con los controladores $PI+D$ se analizan:
+\begin{equation}
+  S(s) = \frac{1}{1+L(s)}, \quad
+  T(s) = \frac{L(s)}{1+L(s)}, \quad
+  K(s)S(s) = \frac{K(s)}{1+L(s)}
+  \label{eq:sensibilidades}
+\end{equation}
+donde $L(s)=K(s)G(s)$ es el lazo abierto. El m\'aximo valor singular de cada funci\'on se obtiene con \texttt{sigma} de MATLAB para estimar la norma $\mathcal{H}_\infty$ del sistema y verificar las especificaciones de robustez.
+
+% \figura{sigma_pid}{0.85}{M\'aximo valor singular -- funciones de sensibilidad $PI+D$.}{fig:sigma_pid}
+
+% ============================================================
+\section{Dise\~no de controladores $\mathcal{H}_\infty$}
+% ============================================================
+
+El dise\~no $\mathcal{H}_\infty$ sintetiza un controlador $K(s)$ que minimiza la norma $\mathcal{H}_\infty$ del sistema en lazo cerrado ponderado:
+\begin{equation}
+  \min_{K\,\text{estabilizante}} \bigl\|\mathbf{F}_\ell(P_g,K)\bigr\|_\infty
+  \label{eq:hinf_general}
+\end{equation}
+donde $P_g(s)$ es la \textbf{planta generalizada} que incorpora la planta nominal $G(s)$ y los filtros de ponderaci\'on $W_1(s)$, $W_2(s)$ y $W_3(s)$ asociados a los objetivos de desempe\~no y robustez.
+
+\subsection*{Selecci\'on de filtros de ponderaci\'on}
+
+\begin{itemize}[leftmargin=*,noitemsep]
+  \item $W_1(s)$: peso sobre el error (sensibilidad $S$). Impone el rechazo de perturbaciones de baja frecuencia y el ancho de banda m\'inimo de $8\,\text{Hz}$.
+  \item $W_2(s)$: peso sobre la acci\'on de control ($KS$). Limita el esfuerzo y el ancho de banda del controlador para rechazar el ruido de alta frecuencia.
+  \item $W_3(s)$: peso sobre la salida (sensibilidad complementaria $T$). Impone robustez frente a la incertidumbre aditiva de entrada hasta $6\,\text{Hz}$.
+\end{itemize}
+
+La planta generalizada se construye como:
+\begin{equation}
+  P_g(s) =
+  \begin{bmatrix}
+    W_1 S_0 \\ W_2 K S_0 \\ W_3 T_0
+  \end{bmatrix}, \qquad
+  S_0 = (I+GK)^{-1},\quad T_0 = GK(I+GK)^{-1}
+  \label{eq:planta_generalizada}
+\end{equation}
+La s\'intesis se realiza con \texttt{hinfsyn} de MATLAB (\textit{Robust Control Toolbox}).
+
+% -----------------------------------------------------------
+\subsection{Dise\~no para eje longitudinal}
+% -----------------------------------------------------------
+
+\desarrollo
+% Describir elecci\'on de filtros W1, W2, W3 para el canal longitudinal.
+% Mostrar interconexion de la planta generalizada en MATLAB.
+
+\resultados
+% \figura{hinf_long_sigma}{0.85}{Valores singulares -- $\mathcal{H}_\infty$ longitudinal.}{fig:hinf_long_sigma}
+% \figura{hinf_long_step}{0.85}{Respuesta al escal\'on -- $\mathcal{H}_\infty$ longitudinal.}{fig:hinf_long_step}
+
+\analisis
+% Comparar con PI+D: desempe\~no nominal, estabilidad robusta, desempe\~no robusto.
+
+% -----------------------------------------------------------
+\subsection{Dise\~no para eje direccional (Yaw)}
+% -----------------------------------------------------------
+
+\desarrollo
+
+\resultados
+% \figura{hinf_yaw_sigma}{0.85}{Valores singulares -- $\mathcal{H}_\infty$ direccional.}{fig:hinf_yaw_sigma}
+% \figura{hinf_yaw_step}{0.85}{Respuesta al escal\'on -- $\mathcal{H}_\infty$ direccional.}{fig:hinf_yaw_step}
+
+\analisis
+
+% -----------------------------------------------------------
+\subsection{Dise\~no para eje lateral (Roll)}
+% -----------------------------------------------------------
+
+\desarrollo
+
+\resultados
+% \figura{hinf_roll_sigma}{0.85}{Valores singulares -- $\mathcal{H}_\infty$ lateral.}{fig:hinf_roll_sigma}
+% \figura{hinf_roll_step}{0.85}{Respuesta al escal\'on -- $\mathcal{H}_\infty$ lateral.}{fig:hinf_roll_step}
+
+\analisis
+
+% -----------------------------------------------------------
+\subsection{Comparaci\'on $PI+D$ vs.\ $\mathcal{H}_\infty$}
+% -----------------------------------------------------------
+
+\begin{table}[H]
+  \centering
+  \caption{Comparaci\'on de controladores por canal.}
+  \label{tab:comparacion}
+  \renewcommand{\arraystretch}{1.3}
+  \begin{tabular}{llccccc}
+    \toprule
+    \textbf{Canal} & \textbf{Controlador}
+      & $\omega_{BW}$ [Hz]
+      & $M_p$ [\%]
+      & $t_s$ [s]
+      & $\|S\|_\infty$
+      & $\|KS\|_\infty$ \\
+    \midrule
+    \multirow{2}{*}{Longitudinal}
+      & $PI+D$              & -- & -- & -- & -- & -- \\
+      & $\mathcal{H}_\infty$ & -- & -- & -- & -- & -- \\
+    \midrule
+    \multirow{2}{*}{Direccional}
+      & $PI+D$              & -- & -- & -- & -- & -- \\
+      & $\mathcal{H}_\infty$ & -- & -- & -- & -- & -- \\
+    \midrule
+    \multirow{2}{*}{Lateral}
+      & $PI+D$              & -- & -- & -- & -- & -- \\
+      & $\mathcal{H}_\infty$ & -- & -- & -- & -- & -- \\
+    \bottomrule
+  \end{tabular}
+\end{table}
+
+% ============================================================
+\section*{Conclusiones}
+% ============================================================
+
+% Sintetizar las principales diferencias de desempe\~no entre PI+D e Hinf,
+% destacando robustez, esfuerzo de control y cumplimiento de especificaciones.
 
 \end{document}
