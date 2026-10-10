@@ -227,73 +227,165 @@ Las \textbf{especificaciones de dise\~no} son:
 \hrule
 \vspace{0.3cm}
 
-% ============================================================
-\section{Dise\~no de controladores \texorpdfstring{$PI+D$}{PI+D}}
-% ============================================================
+\section{Diseño del controlador clásico PI+D}
 
-El dise\~no de los controladores $PI+D$ se lleva a cabo con el esquema de control SAS/CAS.
+\subsection{Metodología de diseño}
+
+El diseño clásico se realizó mediante una arquitectura de dos
+lazos: el Stability Augmentation System (SAS), encargado de
+incrementar el amortiguamiento mediante la realimentación de las
+velocidades angulares, y el Control Augmentation System (CAS),
+destinado al seguimiento de las referencias angulares. El diseño
+se efectuó inicialmente sobre los modelos desacoplados
+\texttt{longmod} y \texttt{latmod}, para posteriormente evaluar
+su comportamiento en el modelo acoplado del UAV.
+
+Para el SAS se seleccionaron las ganancias de realimentación de
+velocidad mediante el lugar de las raíces. En el CAS se ajustaron
+las ganancias proporcional e integral para el seguimiento de
+posición. En los ejes longitudinal y direccional también se
+incorporó una red de adelanto con función de transferencia
+
+\[
+C_{\mathrm{lead}}(s)=\frac{1+bTs}{1+Ts},
+\]
+
+cuyos parámetros se determinaron a partir de la respuesta en
+frecuencia y de una frecuencia de diseño especificada para cada
+eje. El controlador PI se expresa como
+
+\[
+C_{\mathrm{PI}}(s)=K_p+\frac{K_i}{s}.
+\]
+
+\subsection{Diseño por eje}
+
+En el eje longitudinal se utilizó la planta seleccionada
+del modelo longitudinal y se obtuvo una ganancia SAS de
+\(K_d=-0.469\). El CAS se ajustó con
+\(K_p=-14\) y \(K_i=-68\). Finalmente, se diseñó una red
+de adelanto con frecuencia de diseño de \(29.5\,\mathrm{rad/s}\).
+La respuesta en frecuencia y el ancho de banda del lazo cerrado
+se emplearon para evaluar el desempeño obtenido.
+
+En el eje direccional, asociado al ángulo de guiñada \(\psi\),
+se seleccionó una ganancia SAS de \(K_r=-0.174\).
+El CAS PI se diseñó con \(K_p=-1.62\) y \(K_i=-3.24\),
+equivalentes a un cero en \(s=-2\). Posteriormente, se incorporó
+una red de adelanto diseñada para
+\(30\,\mathrm{rad/s}\). Este eje comparte el modelo lateral
+con el control de alabeo, pero utiliza el timón de dirección
+como entrada de control.
+
+Para el eje lateral, correspondiente al alabeo \(\phi\),
+se empleó el alerón como entrada y la velocidad de alabeo
+como variable para el SAS. Se utilizó \(K_d=0.106\) y
+una ganancia proporcional CAS de \(K_p=0.00284\).
+Sin embargo, en la implementación analizada no se incluyó
+acción integral ni red de adelanto para este eje.
+
+\subsection{Análisis del desempeño nominal}
+
+Para cada eje se definió la función de lazo abierto
+\(L(s)=P(s)K(s)\), considerando la planta equivalente con
+el SAS cerrado y el controlador CAS. A partir de ella se
+calcularon la sensibilidad, la sensibilidad complementaria
+y la función de acción de control:
+
+\[
+S(s)=\frac{1}{1+L(s)}, \qquad
+T(s)=\frac{L(s)}{1+L(s)}, \qquad
+K(s)S(s)=\frac{K(s)}{1+P(s)K(s)}.
+\]
+
+La sensibilidad permite estudiar el rechazo de perturbaciones
+y el error de seguimiento; la sensibilidad complementaria
+describe la transmisión de señales de alta frecuencia y ruido
+hacia la salida; y \(K(s)S(s)\) permite analizar la acción de
+control requerida. Sus valores máximos se calcularon mediante
+la norma \(H_\infty\) y se visualizaron con la función
+\texttt{sigma} de MATLAB.
+
+El ancho de banda se obtuvo del lazo cerrado y se comparó
+con el requisito de \(8\,\mathrm{Hz}\), equivalente a
+\(50.27\,\mathrm{rad/s}\). Además, se verificó la localización
+de los polos y se examinó la magnitud de las señales de control.
+La frecuencia de diseño de la red de adelanto no se consideró
+equivalente al ancho de banda: este último se verificó
+independientemente mediante la respuesta del lazo cerrado.
+
+\subsection{Validación en el modelo acoplado}
 
 \begin{figure}[H]
     \centering
-    \includegraphics[width=0.6\linewidth]{SAS_CAS.png}
-    \caption{Esquema de control SAS/CAS.}
-    \label{fig:SAS_CAS}
+    \includegraphics[width=0.5\linewidth]{lll.pdf}
+    \caption{Implementación en Simulink del controlador PI + D en el modelo completo}
+    \label{fig:PID_ROL}
 \end{figure}
 
-Con este esquema, el \textbf{SAS} (\textit{Stability Augmentation System}) genera amortiguamiento realimentando la tasa angular con ganancia proporcional~$K_\text{SAS}$, moviendo los polos poco amortiguados al semiplano izquierdo y separando la acci\'on derivativa del error para evitar picos grandes en la se\~nal de control. Una vez estabilizado el lazo interno, el \textbf{CAS} (\textit{Command Augmentation System}) agrega un controlador PI para seguir el \textit{setpoint} con error nulo en estado estacionario. La estructura general del controlador es:
+Los controladores diseñados sobre las plantas desacopladas
+se integraron en el modelo completo del UAV en Simulink.
+Se evaluaron referencias angulares individuales y simultáneas,
+incluyendo ruido en las mediciones. Se registraron las salidas
+angulares, las velocidades de rotación y las señales aplicadas
+a los actuadores.
 
-\begin{equation}
-  C(s) = C_\text{Lead}(s)\cdot C_\text{PI}(s), \quad
-  C_\text{PI}(s) = K_p\frac{s+a}{s}, \quad
-  C_\text{Lead}(s) = \frac{1+b\,T_2\,s}{1+T_2\,s},\quad b>1
-  \label{eq:controlador_pid}
-\end{equation}
+La comparación entre las simulaciones desacopladas y la
+implementación acoplada permite identificar interacciones entre
+los ejes lateral, direccional y longitudinal. Se evaluaron el
+seguimiento de las referencias, las oscilaciones, el tiempo
+de establecimiento y el esfuerzo de control, verificando que
+las deflexiones no superen \(\pm30^\circ\).
 
-donde la \textbf{red de adelanto de fase} $C_\text{Lead}$ se sintoniza para alcanzar la frecuencia de cruce $\omega_c$ con margen de fase $\phi_m > 30^\circ$.
+Las normas de sensibilidad y las simulaciones nominales
+permiten caracterizar el desempeño del sistema; sin embargo,
+la robustez ante incertidumbre aditiva debe verificarse
+adicionalmente mediante un modelo de incertidumbre y el análisis
+correspondiente. Por tanto, no se considera demostrada
+únicamente a partir de las respuestas nominales.
 
-% -----------------------------------------------------------
-\subsection{Dise\~no para eje longitudinal}
-% -----------------------------------------------------------
+\subsection{Resultados comparativos}
 
-\desarrollo
+Los resultados numéricos del ancho de banda, las normas
+de sensibilidad y el esfuerzo de control se resumen en la
+Tabla~\ref{tab:resultados_pid}. La Figura~\ref{fig:sigma_pid}
+presenta las respuestas de sensibilidad, mientras que la
+Figura~\ref{fig:acoplado_pid} muestra la respuesta obtenida
+en la simulación acoplada.
 
-El modelo longitudinal reducido utiliza los estados $[\alpha,\,q]^T$ y la salida de inter\'es es el \'angulo de cabeceo $\theta$ (integraci\'on de $q$). El SAS realimenta $q$ con ganancia:
-\begin{equation}
-  D_\text{long} = -0{,}469
-\end{equation}
-Sobre el lazo interno estabilizado, el PI se sintoniza con:
-\begin{equation}
-  K_{p,\text{long}} = -14, \quad K_{i,\text{long}} = -68\,\text{rad/s}
-\end{equation}
-La red de adelanto se dimensiona para $\omega_c = 29{,}5\,\text{rad/s}$.
+\begin{table}[htbp]
+\centering
+\caption{Comparación del desempeño de los controladores.}
+\label{tab:resultados_pid}
+\small
+\begin{tabular}{lccc}
+\hline
+Métrica & ROLL & YAW & LONG \\
+\hline
+Ancho de banda (Hz) & -- & -- & -- \\
+$\|S\|_\infty$ & -- & -- & -- \\
+$\|T\|_\infty$ & -- & -- & -- \\
+$\|KS\|_\infty$ & -- & -- & -- \\
+Deflexión máxima ($^\circ$) & -- & -- & -- \\
+\hline
+\end{tabular}
+\end{table}
 
-\resultados
-% \figura{bode_long}{0.85}{Diagrama de Bode -- lazo abierto longitudinal.}{fig:bode_long}
-% \figura{step_long}{0.85}{Respuesta al escal\'on -- canal longitudinal.}{fig:step_long}
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.92\linewidth]{sigma_PI_D.png}
+\caption{Valores singulares de las funciones
+$S(s)$, $T(s)$ y $K(s)S(s)$ de los tres ejes.}
+\label{fig:sigma_pid}
+\end{figure}
 
-\analisis
-
-% -----------------------------------------------------------
-\subsection{Dise\~no para eje direccional (Yaw)}
-% -----------------------------------------------------------
-
-\desarrollo
-
-El canal direccional regula $\psi$ mediante $\delta_r$. El SAS realimenta la tasa de gui\~nada $r$:
-\begin{equation}
-  k_r = -0{,}174
-\end{equation}
-El PI se sintoniza con cero $a_\text{yaw} = 2\,\text{rad/s}$:
-\begin{equation}
-  K_{p,\text{yaw}} = -1{,}62, \quad K_{i,\text{yaw}} = K_{p,\text{yaw}}\cdot a_\text{yaw} = -3{,}24\,\text{rad/s}
-\end{equation}
-La red de adelanto se sintoniza para $\omega_c = 30\,\text{rad/s}$.
-
-\resultados
-% \figura{bode_yaw}{0.85}{Diagrama de Bode -- lazo abierto direccional.}{fig:bode_yaw}
-% \figura{step_yaw}{0.85}{Respuesta al escal\'on -- canal direccional.}{fig:step_yaw}
-
-\analisis
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=0.85\linewidth]{respuesta_acoplada.png}
+\caption{Seguimiento de referencias en el modelo acoplado
+del UAV.}
+\label{fig:acoplado_pid}
+\end{figure}
 
 % -----------------------------------------------------------
 \subsection{Dise\~no para eje lateral (Roll)}
@@ -308,6 +400,26 @@ El canal lateral controla $\phi$ mediante $\delta_a$. El SAS realimenta la tasa 
 La ganancia $K_p$ del PI se obtiene maximiz\'andola tal que todos los polos del lazo cerrado permanezcan en el semiplano izquierdo (lugar de ra\'ices). El cero del PI es $a_\text{roll} = 0{,}0195\,\text{rad/s}$ y la red de adelanto se sintoniza para $\omega_c = 5\,\text{rad/s}$.
 
 \resultados
+
+Durante el proceso de diseño se concluye que no es conveniente para el sistema hacer el CAS mediante un PI, debido al integrador del SAS, junto al integrador del CAS introducían un retraso de -180° al sistema que por su naturaleza lenta genera inestabilidad.Por consiguiente el CAS es un controlador únicamente P, lo que nos arroja el siguiente resultado.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{PID_ROLL.pdf}
+    \caption{Gráficas para el diseño del PI+D con Roll}
+    \label{fig:PID_ROL}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.5\linewidth]{PID_ROLL_SyT.pdf}
+    \caption{Sensibilidad y Sensibilidad complementaria}
+    \label{fig:SYT_ROLL}
+\end{figure}
+
+$S$ muestra el pobre rechazo de perturbaciones que ofrece este controlador, pues S no atenua perturbaciones de alta frecuencia, por otro lado $T$ muestra que el lazo es lento, porque mantiene una ganancia cercana a 1 hasta frecuencias de 3-4 rad/s.
+
+
 % \figura{bode_roll}{0.85}{Diagrama de Bode -- lazo abierto lateral.}{fig:bode_roll}
 % \figura{step_roll}{0.85}{Respuesta al escal\'on -- canal lateral.}{fig:step_roll}
 
@@ -330,134 +442,62 @@ donde $L(s)=K(s)G(s)$ es el lazo abierto. El m\'aximo valor singular de cada fun
 \section{Dise\~no de controladores \texorpdfstring{$\mathcal{H}_\infty$}{H-infinito}}
 % ============================================================
 
-El dise\~no $\mathcal{H}_\infty$ sintetiza un controlador $K(s)$ que minimiza la norma $\mathcal{H}_\infty$ del sistema en lazo cerrado ponderado mediante la configuraci\'on de sensibilidad mixta (\textit{mixed-sensitivity}):
+En la síntesis de controladores $H_\infty$ , las matrices de ponderación $W_1(s)$, $W_2(s)$ y $W_3(s)$ permiten dar forma a las funciones de sensibilidad, sensibilidad al control y sensibilidad complementaria, respectivamente.
+
+\subsection{Ponderación $W_1(s)$ (Sensibilidad)}
+Los parámetros dados para el canal ponderado son:
 \begin{equation}
-  \min_{K\,\text{estabilizante}} \bigl\|\mathbf{F}_\ell(P_g,K)\bigr\|_\infty \leq \gamma, \quad
-  P_g(s) = \begin{bmatrix} W_1 S_0 \\ W_2 K S_0 \\ W_3 T_0 \end{bmatrix}, \quad
-  W_i(s) = \frac{\frac{1}{M_i}s + \omega_{bi}}{s + A_i\,\omega_{bi}}
-  \label{eq:hinf_general}
+M_{1T} = 1.5, \quad A_{1T} = 0.001, \quad \omega_{b1T} = 15
 \end{equation}
-donde $S_0 = (I+GK)^{-1}$ y $T_0 = GK(I+GK)^{-1}$. La selecci\'on de filtros cumple:
-\begin{itemize}[leftmargin=*,noitemsep]
-  \item $W_1(s)$ (error $S$): filtro pasa-bajas; impone error en estado estacionario $1/A_1$, ancho de banda $\omega_{b1}$ y cota de pico $\|S\|_\infty \leq M_1$.
-  \item $W_2(s)$ (control $KS$): penaliza el esfuerzo de actuaci\'on para impedir la saturaci\'on ($|\delta| \leq 30^\circ$).
-  \item $W_3(s)$ (salida $T$): filtro pasa-altas con cota $1/A_3$ y corte $\omega_{b3}$; asegura rechazo de ruido de alta frecuencia y estabilidad robusta ante din\'amicas no modeladas.
-\end{itemize}
-La s\'intesis se ejecuta mediante \texttt{augw} y \texttt{hinfsyn} de MATLAB sobre los modelos desacoplados.
 
-% -----------------------------------------------------------
-\subsection{Dise\~no para eje longitudinal}
-% -----------------------------------------------------------
-
-\desarrollo
-El modelo longitudinal utiliza como entrada el elevador $\delta_e$ y como medidas vectoriales la tasa $q$ y el cabeceo $\theta$ ($y = [q, \theta]^T$). La referencia se aplica exclusivamente en cabeceo ($r_\theta \in [-40^\circ, 40^\circ]$) con $r_q = 0$. Los filtros de ponderaci\'on fijados son:
+La función de transferencia $W_{1T}(s) = \text{tf}([1/M_{1T}, \omega_{b1T}], [1, A_{1T} \cdot \omega_{b1T}])$ se define como:
 \begin{equation}
-  W_1 = \operatorname{diag}(0,\, W_{1\theta}),\ W_{1\theta} = \frac{0{,}333\,s + 1}{s + 0{,}001}; \quad
-  W_2 = 60; \quad
-  W_3 = \operatorname{diag}(0,\, W_{3\theta}),\ W_{3\theta} = \frac{50\,s + 502{,}7}{s + 502{,}7}
+W_{1T}(s) = \frac{\frac{1}{M_{1T}} s + \omega_{b1T}}{s + A_{1T} \cdot \omega_{b1T}} = \frac{\frac{1}{1.5} s + 15}{s + 0.001 \cdot 15} = \frac{\frac{2}{3} s + 15}{s + 0.015}
 \end{equation}
-con $M_1 = 3$, $A_1 = 10^{-3}$, $\omega_{b1} = 1\,\text{rad/s}$, $M_3 = 0{,}02$, $A_3 = 1$ y $\omega_{b3} = 2\pi(80)\,\text{rad/s}$.
 
+Simplificando la expresión:
+\begin{equation}
+W_{1T}(s) = \frac{2s + 45}{3(s + 0.015)} = \frac{0.6667 s + 15}{s + 0.015}
+\end{equation}
+
+La matriz de ponderación $W_1(s)$ queda estructurada como:
+\begin{equation}
+W_1(s) = \begin{bmatrix} 0 & 0 \\ 0 & W_{1T}(s) \end{bmatrix} = \begin{bmatrix} 0 & 0 \\[6pt] 0 & \dfrac{\frac{2}{3} s + 15}{s + 0.015} \end{bmatrix}
+\end{equation}
+
+\subsection{Ponderación $W_2(s)$ (Esfuerzo de Control)}
+La constante o ganancia estática definida por $W_2 = 5 \cdot \text{tf}(1,1)$ corresponde simplemente a:
+\begin{equation}
+W_2(s) = 5
+\end{equation}
+
+\subsection{Ponderación $W_3(s)$ (Incertidumbre / Sensibilidad Complementaria)}
+Los parámetros para el canal secundario son:
+\begin{equation}
+M_{3T} = 0.02, \quad A_{3T} = 1, \quad \omega_{b3T} = 200\pi \approx 628.3185
+\end{equation}
+
+La función de transferencia $W_{3T}(s)$ se construye como:
+\begin{equation}
+W_{3T}(s) = \frac{\frac{1}{M_{3T}} s + \omega_{b3T}}{s + A_{3T} \cdot \omega_{b3T}} = \frac{\frac{1}{0.02} s + 200\pi}{s + 1 \cdot 200\pi} = \frac{50 s + 200\pi}{s + 200\pi}
+\end{equation}
+
+Asimismo, el elemento $W_{3,11}(s)$ corresponde a $\text{tf}(10^{-5})$, por lo que la matriz de ponderación $W_3(s)$ es:
+\begin{equation}
+W_3(s) = \begin{bmatrix} 10^{-5} & 0 \\ 0 & W_{3T}(s) \end{bmatrix} = \begin{bmatrix} 10^{-5} & 0 \\[6pt] 0 & \dfrac{50s + 200\pi}{s + 200\pi} \end{bmatrix}
+\end{equation}
+
+\section{Resumen de Matrices de Ponderación}
+
+A modo de resumen, las matrices de ponderación en el dominio frecuencial son:
+
+\begin{align}
+W_1(s) &= \begin{bmatrix} 0 & 0 \\[4pt] 0 & \dfrac{0.6667 s + 15}{s + 0.015} \end{bmatrix} \\[10pt]
+W_2(s) &= 5 \\[10pt]
+W_3(s) &= \begin{bmatrix} 10^{-5} & 0 \\[4pt] 0 & \dfrac{50 s + 628.32}{s + 628.32} \end{bmatrix}
+\end{align}
 \resultados
-La s\'intesis converge con $\gamma = 58{,}12$, produciendo un controlador MISO de orden 8. La respuesta temporal no presenta sobrepaso ($M_p = 0{,}00\%$), con $t_r = 36{,}03\,\text{s}$ y $t_s = 74{,}09\,\text{s}$. En frecuencia se obtiene $\omega_{BW} = 0{,}0609\,\text{rad/s}$ ($0{,}0097\,\text{Hz}$), con normas pico $\|S_\theta\|_\infty = 1{,}2090$, $\|KS\|_\infty = 0{,}9652$ y $\|T_\theta\|_\infty = 0{,}9952$.
 
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_long_sigma.png}
-    \caption{Valores singulares $\sigma$ y cotas inversas.}
-    \label{fig:hinf_long_sigma}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_long_step.png}
-    \caption{Respuesta temporal al escal\'on en $\theta$.}
-    \label{fig:hinf_long_step}
-  \end{subfigure}
-  \vspace{-2mm}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal longitudinal ($\gamma = 58{,}12$, orden 8).}
-  \label{fig:hinf_long}
-\end{figure}
-
-\analisis
-El peso $W_2 = 60$ prioriza estrictamente evitar la saturaci\'on del elevador: con $\|KS\|_\infty = 0{,}9652$, ante una referencia de $40^\circ$ ($0{,}698\,\text{rad}$), el pico m\'aximo de control es $|\delta_e| \approx 38^\circ$. La respuesta es monot\'onica, libre de sobrepaso y cr\'iticamente amortiguada, intercambiando ancho de banda por preservaci\'on del actuador.
-
-% -----------------------------------------------------------
-\subsection{Dise\~no para eje direccional (Yaw)}
-% -----------------------------------------------------------
-
-\desarrollo
-Para el canal direccional las salidas son la tasa de gui\~nada $r$ y el \'angulo de gui\~nada $\psi$ ($y = [r, \psi]^T$), actuados por el tim\'on $\delta_r$. Para garantizar la regularidad num\'erica se asigna una ponderaci\'on residual ($10^{-5}$) en la medida auxiliar $r$:
-\begin{equation}
-  W_1 = \operatorname{diag}(10^{-5},\, W_{1\psi}),\ W_{1\psi} = \frac{0{,}588\,s + 0{,}5}{s + 0{,}005}; \quad
-  W_2 = 2; \quad
-  W_3 = \operatorname{diag}(10^{-5},\, W_{3\psi}),\ W_{3\psi} = \frac{5\,s + 1885}{s + 2639}
-\end{equation}
-con $M_1 = 1{,}7$, $A_1 = 0{,}01$, $\omega_{b1} = 0{,}5\,\text{rad/s}$, $M_3 = 0{,}2$, $A_3 = 1{,}4$ y $\omega_{b3} = 2\pi(300)\,\text{rad/s}$.
-
-\resultados
-La s\'intesis alcanza un valor casi \'optimo $\gamma = 1{,}0531 \approx 1{,}0$ con un controlador de orden 11. La respuesta al escal\'on en $\psi$ no tiene sobrepaso ($M_p = 0{,}00\%$), con $t_r = 2{,}19\,\text{s}$ y $t_s = 4{,}34\,\text{s}$. El ancho de banda es $\omega_{BW} = 1{,}0212\,\text{rad/s}$ ($0{,}1625\,\text{Hz}$), con picos de norma $\|S_\psi\|_\infty = 1{,}3126$, $\|KS\|_\infty = 0{,}4362$ y $\|T_\psi\|_\infty = 1{,}0000$.
-
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_yaw_sigma.png}
-    \caption{Valores singulares $\sigma$ y cotas inversas.}
-    \label{fig:hinf_yaw_sigma}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_yaw_step.png}
-    \caption{Respuesta temporal al escal\'on en $\psi$.}
-    \label{fig:hinf_yaw_step}
-  \end{subfigure}
-  \vspace{-2mm}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal direccional ($\gamma = 1{,}0531$, orden 11).}
-  \label{fig:hinf_yaw}
-\end{figure}
-
-\analisis
-El controlador $\mathcal{H}_\infty$ supera categ\'oricamente al esquema $PI+D$: mientras este \'ultimo amplificaba la acci\'on de control hasta $\|KS\|_\infty = 301{,}17$ (inviable ante ruido), $\mathcal{H}_\infty$ reduce la norma a $0{,}4362$ (atenuaci\'on de casi 700 veces) y establece el sistema en $4{,}34\,\text{s}$ sin oscilaciones transitorias.
-
-% -----------------------------------------------------------
-\subsection{Dise\~no para eje lateral (Roll)}
-% -----------------------------------------------------------
-
-\desarrollo
-El canal lateral desacoplado emplea las salidas de alabeo $p$ y $\phi$ ($y = [p, \phi]^T$) con entrada de aler\'on $\delta_a$. Los filtros sintonizados son:
-\begin{equation}
-  W_1 = \operatorname{diag}(0,\, W_{1\phi}),\ W_{1\phi} = \frac{0{,}667\,s + 15}{s + 0{,}015}; \quad
-  W_2 = 5; \quad
-  W_3 = \operatorname{diag}(0,\, W_{3\phi}),\ W_{3\phi} = \frac{50\,s + 628{,}3}{s + 628{,}3}
-\end{equation}
-con $M_1 = 1{,}5$, $A_1 = 10^{-3}$, $\omega_{b1} = 15\,\text{rad/s}$, $M_3 = 0{,}02$, $A_3 = 1$ y $\omega_{b3} = 2\pi(100)\,\text{rad/s}$.
-
-\resultados
-El \'indice obtenido es $\gamma = 3{,}4370$, resultando en un controlador de orden 6. La din\'amica es altamente reactiva y amortiguada: $M_p = 0{,}48\%$, $t_r = 0{,}3779\,\text{s}$ y $t_s = 0{,}8780\,\text{s}$. El ancho de banda resultante es $\omega_{BW} = 6{,}1983\,\text{rad/s}$ ($0{,}9865\,\text{Hz} \approx 1\,\text{Hz}$), con $\|S_\phi\|_\infty = 1{,}1395$, $\|KS\|_\infty = 0{,}6726$ y $\|T_\phi\|_\infty = 0{,}9966$.
-
-\begin{figure}[H]
-  \centering
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_roll_sigma.png}
-    \caption{Valores singulares $\sigma$ y cotas inversas.}
-    \label{fig:hinf_roll_sigma}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_roll_step.png}
-    \caption{Respuesta temporal al escal\'on en $\phi$.}
-    \label{fig:hinf_roll_step}
-  \end{subfigure}
-  \vspace{-2mm}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal lateral ($\gamma = 3{,}4370$, orden 6).}
-  \label{fig:hinf_roll}
-\end{figure}
-
-\analisis
-El canal lateral evidencia la ventaja m\'as cr\'itica de $\mathcal{H}_\infty$: resuelve la incapacidad del $PI+D$ cl\'asico, el cual sufr\'ia un sobrepaso del $131{,}62\%$, tiempo de asentamiento de $662\,\text{s}$ y pico $\|S\|_\infty = 5{,}41$. $\mathcal{H}_\infty$ estabiliza los modos de balanceo en $0{,}88\,\text{s}$ con amortiguamiento cr\'itico ($M_p < 0{,}5\%$) y acci\'on moderada ($\|KS\|_\infty = 0{,}67$).
 
 % -----------------------------------------------------------
 \subsection{Comparaci\'on \texorpdfstring{$PI+D$ vs.\ $\mathcal{H}_\infty$}{PI+D vs. H-infinito}}
