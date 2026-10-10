@@ -260,29 +260,11 @@ C_{\mathrm{PI}}(s)=K_p+\frac{K_i}{s}.
 
 \subsection{Diseño por eje}
 
-En el eje longitudinal se utilizó la planta seleccionada
-del modelo longitudinal y se obtuvo una ganancia SAS de
-\(K_d=-0.469\). El CAS se ajustó con
-\(K_p=-14\) y \(K_i=-68\). Finalmente, se diseñó una red
-de adelanto con frecuencia de diseño de \(29.5\,\mathrm{rad/s}\).
-La respuesta en frecuencia y el ancho de banda del lazo cerrado
-se emplearon para evaluar el desempeño obtenido.
+En el eje longitudinal se utilizó la planta seleccionada del modelo longitudinal y se obtuvo una ganancia SAS de \(K_d=-0.469\). El lugar de las raíces (\textit{Root Locus}) se empleó para analizar la ubicación de los polos y seleccionar las ganancias del controlador. El CAS se ajustó con \(K_p=-14\) y \(K_i=-68\), y posteriormente se incorporó una red de adelanto diseñada para una frecuencia de \(29.5\,\mathrm{rad/s}\). Mediante los diagramas de Bode se examinó la respuesta en frecuencia y se calcularon los márgenes de estabilidad del lazo abierto. Finalmente, la respuesta al escalón permitió evaluar el comportamiento transitorio del sistema, considerando el sobreimpulso, la rapidez de respuesta y el tiempo de establecimiento.
 
-En el eje direccional, asociado al ángulo de guiñada \(\psi\),
-se seleccionó una ganancia SAS de \(K_r=-0.174\).
-El CAS PI se diseñó con \(K_p=-1.62\) y \(K_i=-3.24\),
-equivalentes a un cero en \(s=-2\). Posteriormente, se incorporó
-una red de adelanto diseñada para
-\(30\,\mathrm{rad/s}\). Este eje comparte el modelo lateral
-con el control de alabeo, pero utiliza el timón de dirección
-como entrada de control.
+En el eje direccional, asociado al ángulo de guiñada \(\psi\), se seleccionó una ganancia SAS de \(K_r=-0.174\). Se utilizó el lugar de las raíces para estudiar el comportamiento de los polos y orientar la selección de las ganancias del CAS PI, obteniéndose \(K_p=-1.62\) y \(K_i=-3.24\), correspondientes a un cero en \(s=-2\). Posteriormente, se incorporó una red de adelanto diseñada para \(30\,\mathrm{rad/s}\). Los diagramas de Bode permitieron examinar la respuesta en frecuencia antes y después de incorporar dicha red, mientras que la respuesta al escalón se utilizó para evaluar el sobreimpulso y el tiempo de establecimiento, como indicadores de la rapidez y el amortiguamiento del sistema.
 
-Para el eje lateral, correspondiente al alabeo \(\phi\),
-se empleó el alerón como entrada y la velocidad de alabeo
-como variable para el SAS. Se utilizó \(K_d=0.106\) y
-una ganancia proporcional CAS de \(K_p=0.00284\).
-Sin embargo, en la implementación analizada no se incluyó
-acción integral ni red de adelanto para este eje.
+Para el eje lateral, correspondiente al alabeo \(\phi\), se empleó el alerón como entrada de control y la velocidad de alabeo como variable para el SAS. El lugar de las raíces se utilizó para examinar la dinámica de la planta y orientar la selección de la ganancia de realimentación \(K_d=0.106\). Para el CAS se adoptó una ganancia proporcional \(K_p=0.00284\). La respuesta al escalón permitió examinar el comportamiento transitorio y estimar el sobreimpulso y el tiempo de establecimiento; adicionalmente, se calculó el ancho de banda del lazo cerrado. En esta implementación no se incluyeron acción integral ni red de adelanto, por lo que corresponde a una estructura SAS con CAS proporcional, a diferencia de los otros dos ejes.
 
 \subsection{Análisis del desempeño nominal}
 
@@ -468,7 +450,7 @@ donde $L(s)=K(s)G(s)$ es el lazo abierto. El m\'aximo valor singular de cada fun
 \section{Dise\~no de controladores \texorpdfstring{$\mathcal{H}_\infty$}{H-infinito}}
 % ============================================================
 
-<<<<<<< HEAD
+
 \subsection{Formulaci\'on te\'orica general}
 
 El problema de control robusto por sensibilidad mixta (\textit{mixed-sensitivity}) consiste en encontrar un controlador estabilizante $K(s)$ que minimice la norma $\mathcal{H}_\infty$ de la planta generalizada ponderada:
@@ -666,9 +648,12 @@ A modo de resumen, las matrices de ponderación en el dominio frecuencial son:
 
 \subsection{Análisis}
 
-Una de las primeras conclusiones evidentes es que es imposible cumplir con todos los requerimientos simultáneamente, en nuestro caso optamos por encontrar una solución balanceada que a pesar de no ser la más óptima en términos del gamma encontraba un término medio entre ancho de banda, energía de la seña
+Una de las primeras conclusiones evidentes es que es imposible cumplir con todos los requerimientos simultáneamente, en nuestro caso optamos por encontrar una solución balanceada que a pesar de no ser la más óptima en términos del gamma encontraba un término medio entre ancho de banda, energía de la señal de control, rechazo ruido y rechazo de perturbaciones.
 
-Uno de los resultados más interesantes fue el hecho de que a pesar de que individualmente cada controlador funcionaba correctamente analizando como sistemas siso a la hora de unirlos no era necesariamente ese el resultado
+Uno de los resultados más interesantes fue el hecho de que a pesar de que individualmente cada controlador funcionaba correctamente analizando como sistemas siso a la hora de unirlos no era necesariamente ese el resultado, el movimiento en cualquiera de los angulos era una perturbación para el resto de los mismos.
+
+Otro problema presente es el acoplamiento que existe entre $r$ y $Phi$ 
+
 \begin{align}
 W_1(s) &= \begin{bmatrix} 0 & 0 \\[4pt] 0 & \dfrac{0.6667 s + 15}{s + 0.015} \end{bmatrix} \\[10pt]
 W_2(s) &= 5 \\[10pt]
@@ -723,7 +708,6 @@ La Tabla~\ref{tab:comparacion} recopila los indicadores comparativos de desempe\
   \item \textbf{Estabilidad lateral:} $\mathcal{H}_\infty$ reubica multivariablemente los polos donde el lazo cl\'asico diverge en oscilaciones prolongadas.
 \end{itemize}
 
->>>>>>> b888124f7402486815e28dc03c4c23b4443c2b8e
 % ============================================================
 \section*{Conclusiones}
 % ============================================================
