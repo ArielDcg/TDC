@@ -169,7 +169,7 @@ no Tripulado}
   {\normalsize \facultad}\\[1pt]
   {\normalsize \departamento}\\[1pt]
   {\normalsize \programa}\\[10pt]
-  {\includegraphics[width=0.18\linewidth]{images/LogoUnalpng.png}}\\[8pt]
+  {\includegraphics[width=0.18\linewidth]{LogoUnalpng.png}}\\[8pt]
   {\Large\bfseries \curso}\\[2pt]
   {\large \tipo}\\[14pt]
   \begin{tcolorbox}[enhanced, colback=black!4, colframe=black!60,
@@ -212,7 +212,7 @@ no Tripulado}
 
 El presente taller aborda el dise\~no y comparaci\'on de dos estrategias de control para un \textbf{Veh\'iculo A\'ereo No Tripulado (UAV)}: un controlador cl\'asico tipo $PI+D$ basado en el esquema SAS/CAS, y un controlador robusto $\mathcal{H}_\infty$. El objetivo central es el \textit{seguimiento de referencias de posici\'on angular} (\textit{set-point tracking}) en el rango $[-40^\circ, 40^\circ]$ para los \'angulos de cabeceo~$\theta$ y alabeo~$\phi$, garantizando al mismo tiempo rechazo de ruido de medici\'on e incertidumbre aditiva inversa.
 
-La planta corresponde a un modelo lineal nominal de UAV. El eje \textbf{lateral/direccional} tiene como entradas el aler\'on~$\delta_a$ y el tim\'on de direcci\'on~$\delta_r$, y como salidas el alabeo~$\phi$, la gui\~nada~$\psi$ y sus tasas~$(r,p)$. El eje \textbf{longitudinal} tiene como entrada el elevador~$\delta_e$ y como salida el \'angulo de cabeceo~$\theta$ y su tasa~$q$. Los ejes se tratan como desacoplados para el dise\~no y acoplados para la simulaci\'on.
+La planta corresponde a un modelo lineal nominal de UAV. El eje \textbf{lateral/direccional} tiene como entradas el aler\'on y el rudder, y como salidas el alabeo~$\phi$, la gui\~nada~$\psi$ y sus tasas~$(r,p)$. El eje \textbf{longitudinal} tiene como entrada el elevador y como salida el \'angulo de cabeceo~$\theta$ y su tasa~$q$. Los ejes se tratan como desacoplados para el dise\~no y acoplados para la simulaci\'on.
 
 Las \textbf{especificaciones de dise\~no} son:
 \begin{itemize}[leftmargin=*,noitemsep]
@@ -279,7 +279,7 @@ La red de adelanto se dimensiona para $\omega_c = 29{,}5\,\text{rad/s}$.
 
 \desarrollo
 
-El canal direccional regula $\psi$ mediante $\delta_r$. El SAS realimenta la tasa de gui\~nada $r$:
+El canal direccional regula $\psi$ mediante el rudder. El SAS realimenta la tasa de gui\~nada $r$:
 \begin{equation}
   k_r = -0{,}174
 \end{equation}
@@ -301,7 +301,7 @@ La red de adelanto se sintoniza para $\omega_c = 30\,\text{rad/s}$.
 
 \desarrollo
 
-El canal lateral controla $\phi$ mediante $\delta_a$. El SAS realimenta la tasa de alabeo $p$:
+El canal lateral controla $\phi$ mediante el aler\'on. El SAS realimenta la tasa de alabeo $p$:
 \begin{equation}
   K_\text{roll} = -0{,}106
 \end{equation}
@@ -330,176 +330,150 @@ donde $L(s)=K(s)G(s)$ es el lazo abierto. El m\'aximo valor singular de cada fun
 \section{Dise\~no de controladores \texorpdfstring{$\mathcal{H}_\infty$}{H-infinito}}
 % ============================================================
 
-El dise\~no $\mathcal{H}_\infty$ sintetiza un controlador $K(s)$ que minimiza la norma $\mathcal{H}_\infty$ del sistema en lazo cerrado ponderado mediante la configuraci\'on de sensibilidad mixta (\textit{mixed-sensitivity}):
+\subsection{Formulaci\'on te\'orica general}
+
+El problema de control robusto por sensibilidad mixta (\textit{mixed-sensitivity}) consiste en encontrar un controlador estabilizante $K(s)$ que minimice la norma $\mathcal{H}_\infty$ de la planta generalizada ponderada:
 \begin{equation}
   \min_{K\,\text{estabilizante}} \bigl\|\mathbf{F}_\ell(P_g,K)\bigr\|_\infty \leq \gamma, \quad
-  P_g(s) = \begin{bmatrix} W_1 S_0 \\ W_2 K S_0 \\ W_3 T_0 \end{bmatrix}, \quad
-  W_i(s) = \frac{\frac{1}{M_i}s + \omega_{bi}}{s + A_i\,\omega_{bi}}
+  P_g(s) = \begin{bmatrix} W_1 S \\ W_2 K S \\ W_3 T \end{bmatrix}
   \label{eq:hinf_general}
 \end{equation}
-donde $S_0 = (I+GK)^{-1}$ y $T_0 = GK(I+GK)^{-1}$. La selecci\'on de filtros cumple:
-\begin{itemize}[leftmargin=*,noitemsep]
-  \item $W_1(s)$ (error $S$): filtro pasa-bajas; impone error en estado estacionario $1/A_1$, ancho de banda $\omega_{b1}$ y cota de pico $\|S\|_\infty \leq M_1$.
-  \item $W_2(s)$ (control $KS$): penaliza el esfuerzo de actuaci\'on para impedir la saturaci\'on ($|\delta| \leq 30^\circ$).
-  \item $W_3(s)$ (salida $T$): filtro pasa-altas con cota $1/A_3$ y corte $\omega_{b3}$; asegura rechazo de ruido de alta frecuencia y estabilidad robusta ante din\'amicas no modeladas.
-\end{itemize}
-La s\'intesis se ejecuta mediante \texttt{augw} y \texttt{hinfsyn} de MATLAB sobre los modelos desacoplados.
 
-% -----------------------------------------------------------
-\subsection{Dise\~no para eje longitudinal}
-% -----------------------------------------------------------
-
-\desarrollo
-El modelo longitudinal utiliza como entrada el elevador $\delta_e$ y como medidas vectoriales la tasa $q$ y el cabeceo $\theta$ ($y = [q, \theta]^T$). La referencia se aplica exclusivamente en cabeceo ($r_\theta \in [-40^\circ, 40^\circ]$) con $r_q = 0$. Los filtros de ponderaci\'on fijados son:
+donde las funciones de sensibilidad est\'an definidas por:
 \begin{equation}
-  W_1 = \operatorname{diag}(0,\, W_{1\theta}),\ W_{1\theta} = \frac{0{,}333\,s + 1}{s + 0{,}001}; \quad
-  W_2 = 60; \quad
-  W_3 = \operatorname{diag}(0,\, W_{3\theta}),\ W_{3\theta} = \frac{50\,s + 502{,}7}{s + 502{,}7}
+  S(s) = (I + G(s)K(s))^{-1}, \quad
+  T(s) = G(s)K(s)(I + G(s)K(s))^{-1}, \quad
+  K(s)S(s) = K(s)(I + G(s)K(s))^{-1}
+  \label{eq:sensibilidades_hinf}
 \end{equation}
-con $M_1 = 3$, $A_1 = 10^{-3}$, $\omega_{b1} = 1\,\text{rad/s}$, $M_3 = 0{,}02$, $A_3 = 1$ y $\omega_{b3} = 2\pi(80)\,\text{rad/s}$.
 
-\resultados
-La s\'intesis converge con $\gamma = 58{,}12$, produciendo un controlador MISO de orden 8. La respuesta temporal no presenta sobrepaso ($M_p = 0{,}00\%$), con $t_r = 36{,}03\,\text{s}$ y $t_s = 74{,}09\,\text{s}$. En frecuencia se obtiene $\omega_{BW} = 0{,}0609\,\text{rad/s}$ ($0{,}0097\,\text{Hz}$), con normas pico $\|S_\theta\|_\infty = 1{,}2090$, $\|KS\|_\infty = 0{,}9652$ y $\|T_\theta\|_\infty = 0{,}9952$.
+La estructura est\'andar de las funciones de ponderaci\'on de primer orden empleadas es:
+\begin{equation}
+  W_1(s) = \frac{\frac{1}{M_1}s + \omega_{b1}}{s + A_1\,\omega_{b1}}, \quad
+  W_2(s) = k_u, \quad
+  W_3(s) = \frac{\frac{1}{M_3}s + \omega_{b3}}{s + A_3\,\omega_{b3}}
+  \label{eq:filtros_generales}
+\end{equation}
+
+% -----------------------------------------------------------
+\subsection{Canal longitudinal}
+% -----------------------------------------------------------
+
+\begin{itemize}[leftmargin=*,noitemsep]
+  \item \textbf{Actuador:} elevador.
+  \item \textbf{Salidas medidas:} tasa de cabeceo $q$ y \'angulo de cabeceo $\theta$ ($y = [q, \theta]^T$).
+\end{itemize}
+
+\textbf{Valores de los filtros:}
+\begin{align}
+  M_{1\theta} &= 3, \quad A_{1\theta} = 0{,}001, \quad \omega_{b1\theta} = 1\,\text{rad/s} 
+  &\implies& W_{1\theta}(s) = \frac{0{,}333\,s + 1}{s + 0{,}001} \\
+  W_2 &= 60 \\
+  M_{3\theta} &= 0{,}02, \quad A_{3\theta} = 1, \quad \omega_{b3\theta} = 2\pi(80)\,\text{rad/s} \approx 502{,}7\,\text{rad/s} 
+  &\implies& W_{3\theta}(s) = \frac{50\,s + 502{,}7}{s + 502{,}7}
+\end{align}
+\begin{equation}
+  W_1 = \begin{bmatrix} 0 & 0 \\ 0 & W_{1\theta}(s) \end{bmatrix}, \quad
+  W_3 = \begin{bmatrix} 0 & 0 \\ 0 & W_{3\theta}(s) \end{bmatrix}
+\end{equation}
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
     \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_long_sigma.png}
-    \caption{Valores singulares $\sigma$ y cotas inversas.}
+    \caption{Valores singulares $\sigma(S)$, $\sigma(KS)$, $\sigma(T)$ y cotas inversas.}
     \label{fig:hinf_long_sigma}
   \end{subfigure}\hfill
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
     \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_long_step.png}
-    \caption{Respuesta temporal al escal\'on en $\theta$.}
+    \caption{Respuesta temporal al escal\'on en cabeceo $\theta$.}
     \label{fig:hinf_long_step}
   \end{subfigure}
-  \vspace{-2mm}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal longitudinal ($\gamma = 58{,}12$, orden 8).}
+  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal longitudinal (actuador: elevador).}
   \label{fig:hinf_long}
 \end{figure}
 
-\analisis
-El peso $W_2 = 60$ prioriza estrictamente evitar la saturaci\'on del elevador: con $\|KS\|_\infty = 0{,}9652$, ante una referencia de $40^\circ$ ($0{,}698\,\text{rad}$), el pico m\'aximo de control es $|\delta_e| \approx 38^\circ$. La respuesta es monot\'onica, libre de sobrepaso y cr\'iticamente amortiguada, intercambiando ancho de banda por preservaci\'on del actuador.
-
 % -----------------------------------------------------------
-\subsection{Dise\~no para eje direccional (Yaw)}
+\subsection{Canal direccional (Yaw)}
 % -----------------------------------------------------------
 
-\desarrollo
-Para el canal direccional las salidas son la tasa de gui\~nada $r$ y el \'angulo de gui\~nada $\psi$ ($y = [r, \psi]^T$), actuados por el tim\'on $\delta_r$. Para garantizar la regularidad num\'erica se asigna una ponderaci\'on residual ($10^{-5}$) en la medida auxiliar $r$:
+\begin{itemize}[leftmargin=*,noitemsep]
+  \item \textbf{Actuador:} rudder.
+  \item \textbf{Salidas medidas:} tasa de gui\~nada $r$ y \'angulo de gui\~nada $\psi$ ($y = [r, \psi]^T$).
+\end{itemize}
+
+\textbf{Valores de los filtros:}
+\begin{align}
+  M_{1\psi} &= 1{,}4, \quad A_{1\psi} = 0{,}02, \quad \omega_{b1\psi} = 70\,\text{rad/s} 
+  &\implies& W_{1\psi}(s) = \frac{0{,}714\,s + 70}{s + 1{,}4} \\
+  W_2 &= 2 \\
+  M_{3\psi} &= 0{,}2, \quad A_{3\psi} = 0{,}9, \quad \omega_{b3\psi} = 2\pi(300)\,\text{rad/s} \approx 1885\,\text{rad/s} 
+  &\implies& W_{3\psi}(s) = \frac{5\,s + 1885}{s + 1696{,}5}
+\end{align}
 \begin{equation}
-  W_1 = \operatorname{diag}(10^{-5},\, W_{1\psi}),\ W_{1\psi} = \frac{0{,}588\,s + 0{,}5}{s + 0{,}005}; \quad
-  W_2 = 2; \quad
-  W_3 = \operatorname{diag}(10^{-5},\, W_{3\psi}),\ W_{3\psi} = \frac{5\,s + 1885}{s + 2639}
+  W_1 = \begin{bmatrix} 10^{-5} & 0 \\ 0 & W_{1\psi}(s) \end{bmatrix}, \quad
+  W_3 = \begin{bmatrix} 10^{-5} & 0 \\ 0 & W_{3\psi}(s) \end{bmatrix}
 \end{equation}
-con $M_1 = 1{,}7$, $A_1 = 0{,}01$, $\omega_{b1} = 0{,}5\,\text{rad/s}$, $M_3 = 0{,}2$, $A_3 = 1{,}4$ y $\omega_{b3} = 2\pi(300)\,\text{rad/s}$.
-
-\resultados
-La s\'intesis alcanza un valor casi \'optimo $\gamma = 1{,}0531 \approx 1{,}0$ con un controlador de orden 11. La respuesta al escal\'on en $\psi$ no tiene sobrepaso ($M_p = 0{,}00\%$), con $t_r = 2{,}19\,\text{s}$ y $t_s = 4{,}34\,\text{s}$. El ancho de banda es $\omega_{BW} = 1{,}0212\,\text{rad/s}$ ($0{,}1625\,\text{Hz}$), con picos de norma $\|S_\psi\|_\infty = 1{,}3126$, $\|KS\|_\infty = 0{,}4362$ y $\|T_\psi\|_\infty = 1{,}0000$.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
     \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_yaw_sigma.png}
-    \caption{Valores singulares $\sigma$ y cotas inversas.}
+    \caption{Valores singulares $\sigma(S)$, $\sigma(KS)$, $\sigma(T)$ y cotas inversas.}
     \label{fig:hinf_yaw_sigma}
   \end{subfigure}\hfill
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
     \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_yaw_step.png}
-    \caption{Respuesta temporal al escal\'on en $\psi$.}
+    \caption{Respuesta temporal al escal\'on en gui\~nada $\psi$.}
     \label{fig:hinf_yaw_step}
   \end{subfigure}
-  \vspace{-2mm}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal direccional ($\gamma = 1{,}0531$, orden 11).}
+  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal direccional (actuador: rudder).}
   \label{fig:hinf_yaw}
 \end{figure}
 
-\analisis
-El controlador $\mathcal{H}_\infty$ supera categ\'oricamente al esquema $PI+D$: mientras este \'ultimo amplificaba la acci\'on de control hasta $\|KS\|_\infty = 301{,}17$ (inviable ante ruido), $\mathcal{H}_\infty$ reduce la norma a $0{,}4362$ (atenuaci\'on de casi 700 veces) y establece el sistema en $4{,}34\,\text{s}$ sin oscilaciones transitorias.
-
 % -----------------------------------------------------------
-\subsection{Dise\~no para eje lateral (Roll)}
+\subsection{Canal lateral (Roll)}
 % -----------------------------------------------------------
 
-\desarrollo
-El canal lateral desacoplado emplea las salidas de alabeo $p$ y $\phi$ ($y = [p, \phi]^T$) con entrada de aler\'on $\delta_a$. Los filtros sintonizados son:
+\begin{itemize}[leftmargin=*,noitemsep]
+  \item \textbf{Actuador:} aler\'on.
+  \item \textbf{Salidas medidas:} tasa de alabeo $p$ y \'angulo de alabeo $\phi$ ($y = [p, \phi]^T$).
+\end{itemize}
+
+\textbf{Valores de los filtros:}
+\begin{align}
+  M_{1\phi} &= 1{,}5, \quad A_{1\phi} = 0{,}001, \quad \omega_{b1\phi} = 15\,\text{rad/s} 
+  &\implies& W_{1\phi}(s) = \frac{0{,}667\,s + 15}{s + 0{,}015} \\
+  W_2 &= 5 \\
+  M_{3\phi} &= 0{,}02, \quad A_{3\phi} = 1, \quad \omega_{b3\phi} = 2\pi(100)\,\text{rad/s} \approx 628{,}3\,\text{rad/s} 
+  &\implies& W_{3\phi}(s) = \frac{50\,s + 628{,}3}{s + 628{,}3}
+\end{align}
 \begin{equation}
-  W_1 = \operatorname{diag}(0,\, W_{1\phi}),\ W_{1\phi} = \frac{0{,}667\,s + 15}{s + 0{,}015}; \quad
-  W_2 = 5; \quad
-  W_3 = \operatorname{diag}(0,\, W_{3\phi}),\ W_{3\phi} = \frac{50\,s + 628{,}3}{s + 628{,}3}
+  W_1 = \begin{bmatrix} 0 & 0 \\ 0 & W_{1\phi}(s) \end{bmatrix}, \quad
+  W_3 = \begin{bmatrix} 0 & 0 \\ 0 & W_{3\phi}(s) \end{bmatrix}
 \end{equation}
-con $M_1 = 1{,}5$, $A_1 = 10^{-3}$, $\omega_{b1} = 15\,\text{rad/s}$, $M_3 = 0{,}02$, $A_3 = 1$ y $\omega_{b3} = 2\pi(100)\,\text{rad/s}$.
-
-\resultados
-El \'indice obtenido es $\gamma = 3{,}4370$, resultando en un controlador de orden 6. La din\'amica es altamente reactiva y amortiguada: $M_p = 0{,}48\%$, $t_r = 0{,}3779\,\text{s}$ y $t_s = 0{,}8780\,\text{s}$. El ancho de banda resultante es $\omega_{BW} = 6{,}1983\,\text{rad/s}$ ($0{,}9865\,\text{Hz} \approx 1\,\text{Hz}$), con $\|S_\phi\|_\infty = 1{,}1395$, $\|KS\|_\infty = 0{,}6726$ y $\|T_\phi\|_\infty = 0{,}9966$.
 
 \begin{figure}[H]
   \centering
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
     \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_roll_sigma.png}
-    \caption{Valores singulares $\sigma$ y cotas inversas.}
+    \caption{Valores singulares $\sigma(S)$, $\sigma(KS)$, $\sigma(T)$ y cotas inversas.}
     \label{fig:hinf_roll_sigma}
   \end{subfigure}\hfill
   \begin{subfigure}[b]{0.48\linewidth}
     \centering
     \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_roll_step.png}
-    \caption{Respuesta temporal al escal\'on en $\phi$.}
+    \caption{Respuesta temporal al escal\'on en alabeo $\phi$.}
     \label{fig:hinf_roll_step}
   \end{subfigure}
-  \vspace{-2mm}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal lateral ($\gamma = 3{,}4370$, orden 6).}
+  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal lateral (actuador: aler\'on).}
   \label{fig:hinf_roll}
 \end{figure}
-
-\analisis
-El canal lateral evidencia la ventaja m\'as cr\'itica de $\mathcal{H}_\infty$: resuelve la incapacidad del $PI+D$ cl\'asico, el cual sufr\'ia un sobrepaso del $131{,}62\%$, tiempo de asentamiento de $662\,\text{s}$ y pico $\|S\|_\infty = 5{,}41$. $\mathcal{H}_\infty$ estabiliza los modos de balanceo en $0{,}88\,\text{s}$ con amortiguamiento cr\'itico ($M_p < 0{,}5\%$) y acci\'on moderada ($\|KS\|_\infty = 0{,}67$).
-
-% -----------------------------------------------------------
-\subsection{Comparaci\'on \texorpdfstring{$PI+D$ vs.\ $\mathcal{H}_\infty$}{PI+D vs. H-infinito}}
-% -----------------------------------------------------------
-
-La Tabla~\ref{tab:comparacion} recopila los indicadores comparativos de desempe\~no nominal y robustez para ambos esquemas.
-
-\begin{table}[H]
-  \centering
-  \caption{Comparaci\'on cuantitativa de controladores por canal.}
-  \label{tab:comparacion}
-  \renewcommand{\arraystretch}{1.2}
-  \small
-  \begin{tabular}{llccccc}
-    \toprule
-    \textbf{Canal} & \textbf{Controlador}
-      & $\omega_{BW}$ [Hz]
-      & $M_p$ [\%]
-      & $t_s$ [s]
-      & $\|S\|_\infty$
-      & $\|KS\|_\infty$ \\
-    \midrule
-    \multirow{2}{*}{Longitudinal}
-      & $PI+D$              & $8{,}01$ & $7{,}40$  & $0{,}62$  & $1{,}21$ & $38{,}44$ \\
-      & $\mathcal{H}_\infty$ & $0{,}01$ & $0{,}00$  & $74{,}09$ & $1{,}21$ & $0{,}97$ \\
-    \midrule
-    \multirow{2}{*}{Direccional}
-      & $PI+D$              & $8{,}11$ & $7{,}13$  & $4{,}94$  & $1{,}09$ & $301{,}17$ \\
-      & $\mathcal{H}_\infty$ & $0{,}16$ & $0{,}00$  & $4{,}34$  & $1{,}31$ & $0{,}44$ \\
-    \midrule
-    \multirow{2}{*}{Lateral}
-      & $PI+D$              & $0{,}24$ & $131{,}62$ & $662{,}33$ & $5{,}41$ & $0{,}40$ \\
-      & $\mathcal{H}_\infty$ & $0{,}99$ & $0{,}48$   & $0{,}88$   & $1{,}14$ & $0{,}67$ \\
-    \bottomrule
-  \end{tabular}
-\end{table}
-
-\begin{itemize}[leftmargin=*,noitemsep]
-  \item \textbf{Esfuerzo de control y ruido:} El $PI+D$ exige ganancias excesivas ($\|KS\|_\infty$ hasta $301{,}2$), inviables ante ruido sensorial. $\mathcal{H}_\infty$ restringe $\|KS\|_\infty < 1$ en todos los canales.
-  \item \textbf{Amortiguamiento cr\'itico:} $\mathcal{H}_\infty$ erradica sobrepasos transitorios ($M_p \leq 0{,}48\%$), cumpliendo la especificaci\'on de respuesta cr\'iticamente amortiguada.
-  \item \textbf{Estabilidad lateral:} $\mathcal{H}_\infty$ reubica multivariablemente los polos donde el lazo cl\'asico diverge en oscilaciones prolongadas.
-\end{itemize}
 
 % ============================================================
 \section*{Conclusiones}
