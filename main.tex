@@ -361,31 +361,6 @@ $S(s)$, $T(s)$ y $K(s)S(s)$ de los tres ejes.}
 \label{fig:sigma_pid}
 \end{figure}
 
-<<<<<<< HEAD
-\analisis
-
-% -----------------------------------------------------------
-\subsection{Dise\~no para eje direccional (Yaw)}
-% -----------------------------------------------------------
-
-\desarrollo
-
-El canal direccional regula $\psi$ mediante el rudder. El SAS realimenta la tasa de gui\~nada $r$:
-\begin{equation}
-  k_r = -0{,}174
-\end{equation}
-El PI se sintoniza con cero $a_\text{yaw} = 2\,\text{rad/s}$:
-\begin{equation}
-  K_{p,\text{yaw}} = -1{,}62, \quad K_{i,\text{yaw}} = K_{p,\text{yaw}}\cdot a_\text{yaw} = -3{,}24\,\text{rad/s}
-\end{equation}
-La red de adelanto se sintoniza para $\omega_c = 30\,\text{rad/s}$.
-
-\resultados
-% \figura{bode_yaw}{0.85}{Diagrama de Bode -- lazo abierto direccional.}{fig:bode_yaw}
-% \figura{step_yaw}{0.85}{Respuesta al escal\'on -- canal direccional.}{fig:step_yaw}
-
-\analisis
-=======
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=0.85\linewidth]{respuesta_acoplada.png}
@@ -393,7 +368,6 @@ La red de adelanto se sintoniza para $\omega_c = 30\,\text{rad/s}$.
 del UAV.}
 \label{fig:acoplado_pid}
 \end{figure}
->>>>>>> b888124f7402486815e28dc03c4c23b4443c2b8e
 
 % -----------------------------------------------------------
 \subsection{Dise\~no para eje lateral (Roll)}
@@ -450,7 +424,6 @@ donde $L(s)=K(s)G(s)$ es el lazo abierto. El m\'aximo valor singular de cada fun
 \section{Dise\~no de controladores \texorpdfstring{$\mathcal{H}_\infty$}{H-infinito}}
 % ============================================================
 
-
 \subsection{Formulaci\'on te\'orica general}
 
 El problema de control robusto por sensibilidad mixta (\textit{mixed-sensitivity}) consiste en encontrar un controlador estabilizante $K(s)$ que minimice la norma $\mathcal{H}_\infty$ de la planta generalizada ponderada:
@@ -500,19 +473,8 @@ La estructura est\'andar de las funciones de ponderaci\'on de primer orden emple
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_long_sigma.png}
-    \caption{Valores singulares $\sigma(S)$, $\sigma(KS)$, $\sigma(T)$ y cotas inversas.}
-    \label{fig:hinf_long_sigma}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_long_step.png}
-    \caption{Respuesta temporal al escal\'on en cabeceo $\theta$.}
-    \label{fig:hinf_long_step}
-  \end{subfigure}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal longitudinal (actuador: elevador).}
+  \includegraphics[width=0.85\linewidth]{THETA_4.pdf}
+  \caption{Funciones de sensibilidad ($S$, $KS$, $T$) y respuesta al escalón -- Canal longitudinal ($\theta$).}
   \label{fig:hinf_long}
 \end{figure}
 
@@ -540,19 +502,8 @@ La estructura est\'andar de las funciones de ponderaci\'on de primer orden emple
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_yaw_sigma.png}
-    \caption{Valores singulares $\sigma(S)$, $\sigma(KS)$, $\sigma(T)$ y cotas inversas.}
-    \label{fig:hinf_yaw_sigma}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_yaw_step.png}
-    \caption{Respuesta temporal al escal\'on en gui\~nada $\psi$.}
-    \label{fig:hinf_yaw_step}
-  \end{subfigure}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal direccional (actuador: rudder).}
+  \includegraphics[width=0.85\linewidth]{PSI_4.pdf}
+  \caption{Funciones de sensibilidad ($S$, $KS$, $T$) y respuesta al escalón -- Canal direccional ($\psi$).}
   \label{fig:hinf_yaw}
 \end{figure}
 
@@ -580,23 +531,10 @@ La estructura est\'andar de las funciones de ponderaci\'on de primer orden emple
 
 \begin{figure}[H]
   \centering
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_roll_sigma.png}
-    \caption{Valores singulares $\sigma(S)$, $\sigma(KS)$, $\sigma(T)$ y cotas inversas.}
-    \label{fig:hinf_roll_sigma}
-  \end{subfigure}\hfill
-  \begin{subfigure}[b]{0.48\linewidth}
-    \centering
-    \includegraphics[height=3.35cm,width=\linewidth,keepaspectratio]{hinf_roll_step.png}
-    \caption{Respuesta temporal al escal\'on en alabeo $\phi$.}
-    \label{fig:hinf_roll_step}
-  \end{subfigure}
-  \caption{Desempe\~no $\mathcal{H}_\infty$ -- canal lateral (actuador: aler\'on).}
+  \includegraphics[width=0.85\linewidth]{PHI_4.pdf}
+  \caption{Funciones de sensibilidad ($S$, $KS$, $T$) y respuesta al escalón -- Canal lateral ($\phi$).}
   \label{fig:hinf_roll}
 \end{figure}
-
-=======
 En la síntesis de controladores $H_\infty$ , las matrices de ponderación $W_1(s)$, $W_2(s)$ y $W_3(s)$ permiten dar forma a las funciones de sensibilidad, sensibilidad al control y sensibilidad complementaria, respectivamente.
 
 \subsection{Ponderación $W_1(s)$ (Sensibilidad)}
