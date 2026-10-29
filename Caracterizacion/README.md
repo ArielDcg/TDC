@@ -1,4 +1,4 @@
-#Caracterización
+# Caracterización
 
 En este apartado se realiza la identificación de parámetros de la planta.
 Lo primero fue caracterizar la ganancia de fuerza en relación a la tension aplicada en el actuador, por lo que en la carpeta [CaracterizacionKuf](./CaracterizacionKuf/) se puede encontrar el [codigo para la esp32](./CaracterizacionKuf/Varriación_PWM/src/main.cpp), en el cual se pueden especificar el porcentaje de PWM, tanto de inicio como de final, el paso entre ellos y la duración de cada paso. Una vez compilado el código en la esp32, es importante desocupar el puerto en el cual esta la esp32 conectada desde la IDE. Luego se debe de abrir el [archivo de matlab](./CaracterizacionKuf/Varriación_PWM/Gráfica_y_Lectura_puerto.m) y ejecutar el script, este mismo reiniciara la esp32 por el puerto(verificar que el puerto especificado en el script corresponda) y empezara a capturar los datos correspondientes a cada paso.
