@@ -1,0 +1,59 @@
+% ============================================================
+%  SECCIÓN 3: ENTENDIMIENTO DE LA PLANTA Y MODELADO MATEMÁTICO
+% ============================================================
+\section{Entendimiento de la planta y Modelado Matemdático}
+
+\subsection{Arquitectura de Software y Protocolos de Comunicación}
+% Descripcion del firmware del ESP32: lectura sincrona del AS5600 y BMI160 via I2C a 400 kHz,
+% generacion de PWM por hardware y envio de tramas de telemetria serial.
+
+\subsection{Ecuación Diferencial No Lineal}
+A partir del diagrama de cuerpo libre del aeropéndulo en rotación plana alrededor del eje fijo del rodamiento, la sumatoria de torques externos satisface:
+\begin{equation}
+  \sum \tau_O = I \ddot{\theta}(t)
+\end{equation}
+Considerando el torque generado por el empuje aerodindámico del motor $F(t) = K_{uf} u(t)$ a distancia radial $r$, el momento restaurador de la gravedad con centro de masa en $c$ y el amortiguamiento viscoso equivalente $B r^2$:
+\begin{equation}
+  I \ddot{\theta}(t) = r F(t) - B r^2 \dot{\theta}(t) - m g c \cos(\theta(t))
+  \label{eq:dinamica_nolineal}
+\end{equation}
+
+\subsection{Representación No Lineal en Variables de Estado}
+Definiendo el vector de estado como la posición y velocidad angular $\mathbf{x}(t) = \begin{bmatrix} x_1(t) \\ x_2(t) \end{bmatrix} = \begin{bmatrix} \theta(t) \\ \dot{\theta}(t) \end{bmatrix}$ y la se\~nal de entrada como $u(t) = F(t)$, el sistema continuo en espacio de estados adopta la forma:
+\begin{equation}
+  \dot{\mathbf{x}}(t) = \mathbf{f}(\mathbf{x}(t), u(t)) = 
+  \begin{bmatrix}
+    x_2(t) \\
+    \dfrac{r}{I} u(t) - \dfrac{B r^2}{I} x_2(t) - \dfrac{m g c}{I} \cos(x_1(t))
+  \end{bmatrix}
+\end{equation}
+
+\subsection{Linealización Matricial Alrededor de un Punto de Operación}
+A diferencia de los modelos frecuenciales escalares que aproximan linealmente la dindámica únicamente en las proximidades del origen, se realiza una \textbf{linealización matricial jacobiana} en torno a un punto de equilibrio estacionario arbitrario $(\mathbf{x}^*, u^*)$:
+\begin{equation}
+  \mathbf{x}^* = \begin{bmatrix} \theta^* \\ 0 \end{bmatrix}, \qquad u^* = \frac{m g c}{r} \cos(\theta^*)
+\end{equation}
+
+Definiendo las variables de desviación $\Delta \mathbf{x}(t) = \mathbf{x}(t) - \mathbf{x}^*$ y $\Delta u(t) = u(t) - u^*$:
+\begin{equation}
+  \Delta \dot{\mathbf{x}}(t) = \mathbf{A} \Delta \mathbf{x}(t) + \mathbf{B} \Delta u(t), \qquad \Delta y(t) = \mathbf{C} \Delta \mathbf{x}(t) + \mathbf{D} \Delta u(t)
+\end{equation}
+donde las matrices jacobianas del sistema estdán dadas analíticamente por:
+\begin{equation}
+  \mathbf{A} = \left. \frac{\partial \mathbf{f}}{\partial \mathbf{x}} \right|_{(\mathbf{x}^*, u^*)} = 
+  \begin{bmatrix}
+    0 & 1 \\
+    \dfrac{m g c \sin(\theta^*)}{I} & -\dfrac{B r^2}{I}
+  \end{bmatrix}, \qquad
+  \mathbf{B} = \left. \frac{\partial \mathbf{f}}{\partial u} \right|_{(\mathbf{x}^*, u^*)} = 
+  \begin{bmatrix}
+    0 \\
+    \dfrac{r}{I}
+  \end{bmatrix}
+\end{equation}
+con matriz de medición $\mathbf{C} = \begin{bmatrix} 1 & 0 \end{bmatrix}$ y transmisión directa $\mathbf{D} = 0$.
+
+\subsection{Andálisis de Estabilidad Local y Polos del Sistema}
+% Evaluacion analitica de los autovalores de la matriz A en funcion de \theta^*
+% y derivacion de la funcion de transferencia incremental G(s) = C (sI - A)^{-1} B.
+

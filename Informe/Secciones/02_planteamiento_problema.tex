@@ -1,0 +1,37 @@
+% ============================================================
+%  SECCIÓN 2: PLANTEAMIENTO DEL PROBLEMA
+% ============================================================
+\section{Planteamiento del problema}
+
+\subsection{Definición del Sistema Físico y Arquitectura General}
+El problema de control planteado consiste en regular y seguir consignas de posición angular $\theta(t)$ de un aeropéndulo en el plano vertical mediante la generación de empuje generado por un conjunto motor-hélice. El sistema exhibe un comportamiento altamente no lineal debido al torque restaurador gravitacional dependiente del ángulo, así como a la aerodinámica de sustentación y arrastre de la hélice.
+
+A nivel de dise\~no mecatrónico, la planta no opera como un péndulo aislado, sino como una interconexión de módulos funcionales críticos que transforman variables de software y se\~nales eléctricas en movimiento mecánico. Estos subsistemas comprenden:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Unidad de Cómputo y Control (ESP32):} 
+  Microcontrolador de 32 bits de arquitectura Xtensa Dual-Core a $240\,\mathrm{MHz}$. Se encarga de:
+  \begin{itemize}[noitemsep]
+    \item Generar la se\~nal de modulación por ancho de pulsos (\textit{PWM}) con resolución de hardware configurable para el mando de potencia.
+    \item Gestionar el bus de comunicación digital síncrono $\mathrm{I^2C}$ a una velocidad de $400\,\mathrm{kHz}$ (pines GPIO 21 para SDA y GPIO 22 para SCL).
+    \item Muestrear síncronamente las variables de estado y ejecutar la ley de control en tiempo real.
+  \end{itemize}
+
+  \item \textbf{Etapa de Potencia y Actuador (Driver / Motor-Hélice):} 
+  Módulo de conmutación de potencia tipo puente H conectado a los pines de control del ESP32 (GPIO 25 y 26). Gobierna un motor eléctrico acoplado a una hélice de tracción, convirtiendo el ciclo de trabajo del PWM en una fuerza neta de empuje aerodinámico $F(t)$ aplicada a una distancia radial $r$ del eje de giro.
+
+  \item \textbf{Estructura Mecánica y Montaje de Pivote:} 
+  \begin{itemize}[noitemsep]
+    \item \textbf{Chasis principal:} Dise\~nado vectorialmente y fabricado en acrílico mediante corte por láser (\texttt{LaserFinal.dxf}), garantizando ligereza, rigidez torsional y repetibilidad dimensional.
+    \item \textbf{Soporte de motor:} Pieza angular optimizada fabricada en manufactura aditiva FDM (\texttt{Angulo.stl}) para alinear el vector de empuje perpendicularmente al eje del brazo.
+    \item \textbf{Inserto de rodamiento:} Carcasa cilíndrica impresa en 3D (\texttt{InsertoRoda.stl}) que aloja un rodamiento de bolas en el eje de rotación. Este componente desacopla mecánicamente el eje y suprime casi en su totalidad la fricción seca por rozamiento directo, aproximando el sistema a un comportamiento puramente viscoso.
+  \end{itemize}
+
+  \item \textbf{Subsistema Sensorial Digital Redundante:} 
+  \begin{itemize}[noitemsep]
+    \item \textbf{Encoder magnético absoluto AS5600:} Sensor rotativo sin contacto con convertidor interno Hall de 12 bits ($4096$ divisiones por revolución, resolución nominal de $0{,}0879^\circ$), interrogado por $\mathrm{I^2C}$. Se encuentra coaxialmente enfrentado a un imán diametral fijado mediante un tapón de sujeción impreso (\texttt{TaponIman.stl}).
+    \item \textbf{Unidad de Medición Inercial BMI160:} Sensor inercial de bajo consumo integrado en el bus $\mathrm{I^2C}$ (dirección $0\mathrm{x}68$). Permite obtener directamente la velocidad angular alrededor del eje de giro ($\dot{\theta} \equiv \mathrm{GyroZ}$), evitando la derivación numérica ruidosa de la posición angular.
+  \end{itemize}
+\end{enumerate}
+
+

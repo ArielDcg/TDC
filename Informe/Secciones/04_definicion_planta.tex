@@ -1,0 +1,74 @@
+% ============================================================
+%  SECCIÓN 4: DEFINICIÓN DE LA PLANTA Y CARACTERIZACIÓN DE PARÁMETROS
+% ============================================================
+\section{Definición de la planta y Caracterización de Parámetros}
+
+La precisión predictiva del modelo linealizado en espacio de estados y la robustez del controlador a diseñar dependen de una determinación rigurosa de los parámetros físicos de la planta. Esta sección expone la metodología de obtención de parámetros directos e indirectos, junto con la cuantificación formal de sus fuentes de incertidumbre.
+
+\subsection{Metodología de Obtención de Parámetros}
+
+\subsubsection{Parámetros de Medición Directa}
+Corresponden a magnitudes geométricas y físicas evaluadas directamente sobre la estructura física mediante instrumentación metrológica:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Radio al eje del motor ($r$):} Distancia medida con calibrador pie de rey de precisión desde el centro geométrico del eje del pivote hasta la línea de aplicación del empuje del motor:
+  \begin{equation}
+    r = 0.1350\,\mathrm{m} \quad (135.0\,\mathrm{mm})
+  \end{equation}
+  \item \textbf{Masa total oscilante ($m$):} Masa del ensamble móvil completo (brazo de acrílico, motor DC, hélice, soporte angular 3D, tornillería e insertos) registrada en una balanza analítica digital de resolución $0.1\,\mathrm{g}$:
+  \begin{equation}
+    m = 0.0300\,\mathrm{kg} \quad (30.0\,\mathrm{g})
+  \end{equation}
+  \item \textbf{Aceleración gravitacional ($g$):} Valor de referencia local para la ciudad de Bogotá D.C. ($2600\,\mathrm{m.s.n.m.}$):
+  \begin{equation}
+    g = 9.81\,\mathrm{m/s^2}
+  \end{equation}
+\end{itemize}
+
+\subsubsection{Parámetros Indirectos y Caracterización Experimental}
+Aquellas propiedades que no admiten medición directa requirieron el diseño de protocolos experimentales dedicados y modelado por elementos finitos/CAD:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Distancia al Centro de Masa ($c$):} 
+  Distancia axial desde el pivote hasta el centro de gravedad del conjunto móvil. Se determinó integrando las geometrías con ayuda del entorno CAD \textit{Autodesk Fusion 360}.
+  \begin{equation}
+    c = 0.0407\,\mathrm{m} \quad (40.68\,\mathrm{mm})
+  \end{equation}
+
+  \item \textbf{Momento de Inercia respecto al Pivote ($I$):} 
+  Calculado en Fusion 360
+  \begin{equation}
+    I = I_G + m c^2 \approx 7.942 \times 10^{-5}\,\mathrm{kg\cdot m^2}
+  \end{equation}
+  Este valor resulta plenamente consistente con la frecuencia natural observada en los ensayos oscilatorios libres ($\omega_n \approx 12.28\,\mathrm{rad/s}$).
+
+  \item \textbf{Ganancia Estática de Empuje del Actuador ($K_{uf}$):} 
+  Esta ganancia engloba la conversión integral de la señal PWM en tensión efectiva sobre el motor, el par motor generado y el empuje aerodinámico de las aspas de la hélice. Dado que su dinámica eléctrica es significativamente más rápida que la respuesta mecánica del brazo, se modela como una ganancia estática $F(t) = K_{uf}\cdot u_{\mathrm{PWM}}(t)$.
+  
+  Para su caracterización se ejecutó el firmware \texttt{Varriación\_PWM} en el ESP32, aplicando una secuencia escalonada decreciente desde $90\%$ hasta $10\%$ de PWM en pasos de $2\%$, manteniendo cada nivel durante $5.0\,\mathrm{s}$ para extinguir los transitorios. A través del script de MATLAB \texttt{Gráfica\_y\_Lectura\_puerto.m}, se tomaron los promedios estables de ángulo $\theta_{\mathrm{est}}$ para cada nivel de PWM, despejando la fuerza estática requerida para el equilibrio:
+  \begin{equation}
+    \sum \tau = r F - m g c \cos(\theta_{\mathrm{est}}) = 0 \implies F = \frac{m g c}{r} \cos(\theta_{\mathrm{est}})
+  \end{equation}
+  Mediante un ajuste por regresión lineal de mínimos cuadrados ordinarios entre el PWM aplicado y la fuerza de sustentación resultante se identificó:
+  \begin{equation}
+    K_{uf} \approx 1.90 \times 10^{-3}\,\mathrm{N/\%}
+  \end{equation}
+
+  \item \textbf{Coeficiente de Fricción Viscosa ($B$):} 
+  Para desacoplar el efecto de la fuerza motriz y caracterizar las fuerzas disipativas del rodamiento y la resistencia aerodinámica pasiva, se implementó el método del \textbf{decremento logarítmico} sobre la oscilación libre subamortiguada (\texttt{Friccion} y \texttt{Envolvente.m}).
+  
+  El procedimiento consistió en:
+  \begin{enumerate}[label=\alph*)]
+    \item Posicionar el brazo en un ángulo inicial estacionario aplicando un ciclo de trabajo base de $75\%$.
+    \item Interrumpir s\'ubita e instantáneamente la señal PWM a cero ($u = 0$), permitiendo que el aeropéndulo oscile libremente hacia su punto de equilibrio natural.
+    \item Registrar la serie temporal del ángulo $\theta(t)$ y la velocidad $\dot{\theta}(t)$ mediante el encoder AS5600 y la IMU BMI160 a $115200\,\mathrm{baud}$.
+    \item Identificar los instantes de tiempo $t_k$ y amplitudes de los máximos y mínimos locales $(\abs{\theta_k})$, ajustando una envolvente exponencial teórica:
+    \begin{equation}
+      \theta_{\mathrm{env}}(t) = A_0 e^{-\sigma t} \implies \ln \abs{\theta_k} = \ln(A_0) - \sigma t_k
+    \end{equation}
+    \item A partir de la pendiente de la recta semilogarítmica se determinó la tasa de decaimiento experimental $\sigma \approx 0.8176\,\mathrm{s^{-1}}$ y el periodo de oscilación amortiguada $T_d \approx 0.512\,\mathrm{s}$. Conforme a la ecuación característica de segundo orden:
+    \begin{equation}
+      2\zeta\omega_n = \frac{B r^2}{I} = 2\sigma \implies B = \frac{2\sigma I}{r^2} \approx 7.13 \times 10^{-3}\,\mathrm{N\cdot s/m}
+    \end{equation}
+  \end{enumerate}
+\end{enumerate}
+

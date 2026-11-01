@@ -1,0 +1,207 @@
+%% ============================================================
+%%  INFORME DE PROYECTO - TÉCNICAS DE CONTROL
+%%  Sistema: Aeropéndulo
+%%  Universidad Nacional de Colombia - Sede Bogotá
+%%  Compilar con: pdflatex
+%% ============================================================
+\documentclass[11pt,letterpaper]{article}
+
+% ---------- Codificacion e idioma ----------
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[spanish,es-noshorthands,es-tabla]{babel}
+\usepackage{lmodern}
+\usepackage{microtype}
+
+% ---------- Pagina y margenes ----------
+\usepackage[top=2.5cm,bottom=2.3cm,left=2.3cm,right=2.3cm,headheight=28pt]{geometry}
+\usepackage{fancyhdr}
+\usepackage{lastpage}
+\usepackage{setspace}
+\setstretch{1.12}
+
+% ---------- Matematicas ----------
+\usepackage{amsmath,amssymb,mathtools}
+\usepackage{siunitx}
+\sisetup{output-decimal-marker={,}}
+
+% ---------- Graficos y tablas ----------
+\usepackage{graphicx}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{float}
+\usepackage[font=small,labelfont=bf]{caption}
+\usepackage{subcaption}
+\usepackage{tcolorbox}
+\tcbuselibrary{skins,breakable}
+\graphicspath{{Imagenes/}{./}}
+
+% ---------- Codigo MATLAB / C++ ----------
+\usepackage{listings}
+
+\definecolor{mlkeyword}{RGB}{0,0,255}
+\definecolor{mlcomment}{RGB}{0,128,0}
+\definecolor{mlstring}{RGB}{160,32,240}
+\definecolor{mlbg}{RGB}{248,248,248}
+
+\lstdefinestyle{matlabstyle}{
+  language=Matlab,
+  basicstyle=\ttfamily\footnotesize,
+  keywordstyle=\color{mlkeyword}\bfseries,
+  commentstyle=\color{mlcomment}\itshape,
+  stringstyle=\color{mlstring},
+  numbers=left,
+  numberstyle=\tiny\color{gray},
+  numbersep=8pt,
+  backgroundcolor=\color{mlbg},
+  frame=single,
+  rulecolor=\color{black!25},
+  breaklines=true,
+  breakatwhitespace=false,
+  tabsize=4,
+  showstringspaces=false,
+  columns=fullflexible,
+  keepspaces=true,
+  xleftmargin=14pt,
+  captionpos=b,
+  literate=
+    {a}{{\'{a}}}1 {e}{{\'{e}}}1 {i}{{\'{i}}}1 {o}{{\'{o}}}1 {u}{{\'{u}}}1
+    {A}{{\'{A}}}1 {E}{{\'{E}}}1 {I}{{\'{I}}}1 {O}{{\'{O}}}1 {U}{{\'{U}}}1
+    {n}{{\~{n}}}1 {N}{{\~{N}}}1
+}
+
+\lstset{style=matlabstyle}
+\renewcommand{\lstlistingname}{C\'{o}digo}
+
+% ---------- Listas y enlaces ----------
+\usepackage{enumitem}
+\setlist[enumerate,1]{label=\textbf{\arabic*.},leftmargin=*}
+\setlist[enumerate,2]{label=\textbf{\alph*)},leftmargin=1.8em}
+\usepackage[hidelinks]{hyperref}
+
+% ============================================================
+%  DATOS DEL TRABAJO
+% ============================================================
+\newcommand{\universidad}{Universidad Nacional de Colombia}
+\newcommand{\facultad}{Facultad de Ingeniería}
+\newcommand{\departamento}{Departamento de Ingeniería Mecánica y Mecatrónica}
+\newcommand{\programa}{Ingeniería Mecatrónica}
+\newcommand{\curso}{Técnicas de Control}
+\newcommand{\tipo}{Informe de Proyecto}
+\newcommand{\profesor}{Prof.\ Jorge Iván Sofrony Esmeral}
+\newcommand{\periodo}{2026-II}
+\newcommand{\fecha}{\today}
+
+\newcommand{\nombregrupo}{Modelado, Caracterización Experimental y Control en Espacio de Estados de un Aeropéndulo}
+
+% Integrantes
+\newcommand{\integranteA}{Samuel David Negrete Lancheros}
+\newcommand{\integranteB}{Jesús David Sánchez Cobos}
+\newcommand{\integranteC}{Leonardo Acevedo Monroy}
+\newcommand{\integranteD}{Ariel Giovanni Cárdenas Santisteban}
+
+% Correos institucionales
+\newcommand{\correoA}{\textit{snegrete@unal.edu.co}}
+\newcommand{\correoB}{\textit{jdsanchezco@unal.edu.co}}
+\newcommand{\correoC}{\textit{leacevedo@unal.edu.co}}
+\newcommand{\correoD}{\textit{arcardenass@unal.edu.co}}
+
+% ============================================================
+%  ENCABEZADO Y PIE
+% ============================================================
+\pagestyle{fancy}
+\fancyhf{}
+\lhead{\small\textbf{\curso}}
+\chead{\small\tipo}
+\rhead{\small\periodo}
+\lfoot{\small\departamento{} -- \programa}
+\rfoot{\small Página~\thepage\ de~\pageref{LastPage}}
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% ============================================================
+%  MACROS
+% ============================================================
+\newcommand{\dd}{\,\mathrm{d}}
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+
+\numberwithin{equation}{section}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{0.6em}
+
+% ============================================================
+\begin{document}
+
+% ---------- Portada ----------
+\begin{center}
+  {\large\bfseries \universidad}\\[2pt]
+  {\normalsize \facultad}\\[1pt]
+  {\normalsize \departamento}\\[1pt]
+  {\normalsize \programa}\\[10pt]
+  {\includegraphics[width=0.18\linewidth]{LogoUnalpng.png}}\\[8pt]
+  {\Large\bfseries \curso}\\[2pt]
+  {\large \tipo}\\[14pt]
+  \begin{tcolorbox}[enhanced, colback=black!4, colframe=black!60,
+      boxrule=0.6pt, arc=3pt, width=\linewidth, halign=center]
+    {\LARGE\bfseries \nombregrupo}
+  \end{tcolorbox}
+\end{center}
+
+\vspace{0.2cm}
+
+% ---------- Integrantes ----------
+\begin{center}
+\renewcommand{\arraystretch}{1.4}
+\begin{tabularx}{\linewidth}{
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X
+    >{\centering\arraybackslash}X}
+  \toprule
+  \textbf{\integranteA} &
+  \textbf{\integranteB} &
+  \textbf{\integranteC} &
+  \textbf{\integranteD} \\[2pt]
+  \correoA & \correoB & \correoC & \correoD \\
+  \bottomrule
+\end{tabularx}
+\end{center}
+
+\begin{center}
+  \small \profesor \quad$\bullet$\quad \periodo \quad$\bullet$\quad \fecha
+\end{center}
+
+\vspace{0.1cm}
+\hrule
+\vspace{0.3cm}
+
+% ---------- Resumen ----------
+\begin{abstract}
+\noindent Este informe presenta el diseño, caracterización experimental, modelado matemático y control en espacio de estados de un sistema mecatrónico tipo \textbf{aeropéndulo}. A partir de una arquitectura integrada por un microcontrolador ESP32 de 32 bits, sensado digital magnético e inercial por bus $\mathrm{I^2C}$ (AS5600 y BMI160) y un soporte mecánico optimizado con pivote sobre rodamiento y chasis en corte láser, se identifica la dinámica no lineal rotacional. A diferencia de esquemas clásicos escalares en el dominio frecuencial, se formula una representación no lineal en variables de estado y se realiza su \textbf{linealización matricial jacobiana} alrededor de puntos de equilibrio arbitrarios. Se detallan los ensayos experimentales para la estimación de la ganancia estática de empuje ($K_{uf}$) y el coeficiente de fricción viscosa ($B$), analizando cuantitativamente las fuentes de incertidumbre para la futura síntesis de leyes de control robusto.
+\\[4pt]
+\textbf{Palabras clave:} Aeropéndulo, linealización matricial, espacio de estados, caracterización experimental, identificación de parámetros, incertidumbre, control moderno.
+\end{abstract}
+
+% ============================================================
+%  SECCIONES MODULARES
+% ============================================================
+\input{Secciones/01_introduccion.tex}
+\input{Secciones/02_planteamiento_problema.tex}
+\input{Secciones/03_entendimiento_planta.tex}
+\input{Secciones/04_definicion_planta.tex}
+\input{Secciones/05_diseno_controlador.tex}
+\input{Secciones/06_resultados.tex}
+\input{Secciones/07_conclusiones.tex}
+
+% ============================================================
+%  REFERENCIAS BIBLIOGRÁFICAS
+% ============================================================
+%\begin{thebibliography}{9}
+%\end{thebibliography}
+
+\end{document}
+
