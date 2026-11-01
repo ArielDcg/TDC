@@ -3,35 +3,102 @@
 % ============================================================
 \section{Planteamiento del problema}
 
-\subsection{Definición del Sistema Físico y Arquitectura General}
-El problema de control planteado consiste en regular y seguir consignas de posición angular $\theta(t)$ de un aeropéndulo en el plano vertical mediante la generación de empuje generado por un conjunto motor-hélice. El sistema exhibe un comportamiento altamente no lineal debido al torque restaurador gravitacional dependiente del ángulo, así como a la aerodinámica de sustentación y arrastre de la hélice.
+\subsection{Definici\'on del Sistema F\'{\i}sico y Arquitectura General}
+El problema de control planteado consiste en gobernar la posici\'on angular $\theta(t)$ de un aerop\'endulo en el plano vertical mediante la generaci\'on de empuje por medio de un conjunto motor-h\'elice. La planta exhibe una din\'amica no lineal debido al momento restaurador gravitacional dependiente de la orientaci\'on angular y al comportamiento aerodin\'amico del flujo generado por las aspas.
 
-A nivel de dise\~no mecatrónico, la planta no opera como un péndulo aislado, sino como una interconexión de módulos funcionales críticos que transforman variables de software y se\~nales eléctricas en movimiento mecánico. Estos subsistemas comprenden:
+La plataforma f\'{\i}sica comprende una serie de subsistemas mecatr\'onicos interconectados:
 
 \begin{enumerate}[leftmargin=*]
-  \item \textbf{Unidad de Cómputo y Control (ESP32):} 
-  Microcontrolador de 32 bits de arquitectura Xtensa Dual-Core a $240\,\mathrm{MHz}$. Se encarga de:
+  \item \textbf{Unidad de C\'omputo y Control (ESP32):} 
+  Microcontrolador de 32 bits a $240\,\mathrm{MHz}$. Genera la se\~nal de modulaci\'on por ancho de pulso (\textit{PWM}) para el control de potencia, gestiona la adquisici\'on s\'{\i}ncrona de datos por bus digital $\mathrm{I^2C}$ a $400\,\mathrm{kHz}$ (GPIO 21 para SDA y GPIO 22 para SCL) y ejecuta el lazo de control.
+
+  \item \textbf{Etapa de Potencia y Actuador:} 
+  M\'odulo driver / puente H conectado a los pines de control del ESP32 (GPIO 25 y 26). Excita un micromotor DC con h\'elice bipala de tracci\'on, convirtiendo el ciclo de trabajo de PWM en una fuerza de empuje aerodin\'amico $F(t)$ aplicada en el extremo libre del brazo.
+
+  \item \textbf{Estructura Mec\'anica y Montaje de Pivote:} 
   \begin{itemize}[noitemsep]
-    \item Generar la se\~nal de modulación por ancho de pulsos (\textit{PWM}) con resolución de hardware configurable para el mando de potencia.
-    \item Gestionar el bus de comunicación digital síncrono $\mathrm{I^2C}$ a una velocidad de $400\,\mathrm{kHz}$ (pines GPIO 21 para SDA y GPIO 22 para SCL).
-    \item Muestrear síncronamente las variables de estado y ejecutar la ley de control en tiempo real.
+    \item \textbf{Chasis y brazo en acr\'{\i}lico:} Fabricados mediante corte por l\'aser (\texttt{LaserFinal.dxf}). Comprende la base horizontal de soporte, la torre vertical de fijaci\'on y el brazo oscilante alargado.
+    \item \textbf{Piezas en impresi\'on 3D (PLA):} Fabricadas por manufactura aditiva FDM, incluyendo la brida soporte del pivote atornillada a la torre (\texttt{InsertoRoda.stl}), el soporte angular para el actuador (\texttt{Angulo.stl}) y los topes mec\'anicos.
+    \item \textbf{Inserto con rodamiento y eje de acero:} El alojamiento impreso contiene un rodamiento de bolas sobre un eje cil\'{\i}ndrico de acero rectificado, minimizando la fricci\'on seca por rozamiento directo.
   \end{itemize}
 
-  \item \textbf{Etapa de Potencia y Actuador (Driver / Motor-Hélice):} 
-  Módulo de conmutación de potencia tipo puente H conectado a los pines de control del ESP32 (GPIO 25 y 26). Gobierna un motor eléctrico acoplado a una hélice de tracción, convirtiendo el ciclo de trabajo del PWM en una fuerza neta de empuje aerodinámico $F(t)$ aplicada a una distancia radial $r$ del eje de giro.
-
-  \item \textbf{Estructura Mecánica y Montaje de Pivote:} 
+  \item \textbf{Subsistema Sensorial Digital:} 
   \begin{itemize}[noitemsep]
-    \item \textbf{Chasis principal:} Dise\~nado vectorialmente y fabricado en acrílico mediante corte por láser (\texttt{LaserFinal.dxf}), garantizando ligereza, rigidez torsional y repetibilidad dimensional.
-    \item \textbf{Soporte de motor:} Pieza angular optimizada fabricada en manufactura aditiva FDM (\texttt{Angulo.stl}) para alinear el vector de empuje perpendicularmente al eje del brazo.
-    \item \textbf{Inserto de rodamiento:} Carcasa cilíndrica impresa en 3D (\texttt{InsertoRoda.stl}) que aloja un rodamiento de bolas en el eje de rotación. Este componente desacopla mecánicamente el eje y suprime casi en su totalidad la fricción seca por rozamiento directo, aproximando el sistema a un comportamiento puramente viscoso.
-  \end{itemize}
-
-  \item \textbf{Subsistema Sensorial Digital Redundante:} 
-  \begin{itemize}[noitemsep]
-    \item \textbf{Encoder magnético absoluto AS5600:} Sensor rotativo sin contacto con convertidor interno Hall de 12 bits ($4096$ divisiones por revolución, resolución nominal de $0{,}0879^\circ$), interrogado por $\mathrm{I^2C}$. Se encuentra coaxialmente enfrentado a un imán diametral fijado mediante un tapón de sujeción impreso (\texttt{TaponIman.stl}).
-    \item \textbf{Unidad de Medición Inercial BMI160:} Sensor inercial de bajo consumo integrado en el bus $\mathrm{I^2C}$ (dirección $0\mathrm{x}68$). Permite obtener directamente la velocidad angular alrededor del eje de giro ($\dot{\theta} \equiv \mathrm{GyroZ}$), evitando la derivación numérica ruidosa de la posición angular.
+    \item \textbf{Encoder magn\'etico absoluto AS5600:} Resoluci\'on de 12 bits ($4096$ pasos por revoluci\'on, resoluci\'on nominal de $0{,}0879^\circ$), interrogado por $\mathrm{I^2C}$. Montado en la parte posterior del pivote, enfrentado coaxialmente a un im\'an diametral fijado mediante un tap\'on portaim\'an impreso (\texttt{TaponIman.stl}).
+    \item \textbf{Unidad de Medici\'on Inercial BMI160:} Sensor inercial montado directamente sobre el cuerpo del brazo de acr\'{\i}lico y conectado al bus $\mathrm{I^2C}$ (direcci\'on $0\mathrm{x}68$), para el registro directo de la velocidad angular ($\dot{\theta} \equiv \mathrm{GyroZ}$).
   \end{itemize}
 \end{enumerate}
 
+\subsection{Esquema Funcional de Lazo Cerrado}
+En la Figura~\ref{fig:esquema_lazo_cerrado} se representa el diagrama de bloques del sistema en lazo cerrado, detallando las se\~nales que fluyen entre cada subsistema.
 
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[
+      block/.style={draw, fill=blue!5, rounded corners=2pt, minimum height=1.0cm, minimum width=1.9cm, align=center, font=\small},
+      sum/.style={draw, circle, inner sep=0pt, minimum size=6mm, font=\small},
+      sensor/.style={draw, fill=green!6, rounded corners=2pt, minimum height=0.9cm, minimum width=2.2cm, align=center, font=\small},
+      arrow/.style={-{Latex[scale=0.9]}, semithick},
+      node distance=1.0cm and 0.8cm
+    ]
+
+    % Nodos directos
+    \node (ref) {$\theta_{\mathrm{ref}}$};
+    \node [sum, right=0.6cm of ref] (sum) {$+$};
+    \node [block, right=0.7cm of sum] (ctrl) {\textbf{ESP32}\\\footnotesize Algoritmo};
+    \node [block, right=0.9cm of ctrl] (driver) {\textbf{Driver}\\\footnotesize Puente H};
+    \node [block, right=0.9cm of driver] (motor) {\textbf{Motor-H\'elice}\\\footnotesize Empuje $K_{uf}$};
+    \node [block, right=0.9cm of motor] (planta) {\textbf{Aerop\'endulo}\\\footnotesize Din\'amica rotacional};
+    \node [right=0.8cm of planta] (salida) {$\theta(t)$};
+
+    % Conexiones trayectoria directa
+    \draw [arrow] (ref) -- node[above, font=\footnotesize] {$+$} (sum);
+    \draw [arrow] (sum) -- node[above, font=\footnotesize] {$e(t)$} (ctrl);
+    \draw [arrow] (ctrl) -- node[above, font=\footnotesize] {PWM} (driver);
+    \draw [arrow] (driver) -- node[above, font=\footnotesize] {$V_{\mathrm{mot}}$} (motor);
+    \draw [arrow] (motor) -- node[above, font=\footnotesize] {$F(t)$} (planta);
+    \draw [arrow] (planta) -- (salida);
+
+    % Lazo de realimentacion
+    \node [sensor, below=1.2cm of $(driver)!0.5!(motor)$] (sensores) {\textbf{Sensores Digitales} $\mathbf{(I^2C)}$\\\footnotesize AS5600 ($\theta$) / BMI160 ($\dot{\theta}$)};
+
+    \draw [arrow] ($(planta.east)+(0.3,0)$) |- (sensores.east);
+    \draw [arrow] (sensores.west) -| node[pos=0.9, left, font=\footnotesize] {$-$} (sum);
+
+  \end{tikzpicture}%
+  }
+  \caption{Esquema en bloques del aerop\'endulo en lazo cerrado.}
+  \label{fig:esquema_lazo_cerrado}
+\end{figure}
+
+\subsection{Se\~nales de Entrada, Salida y Restricciones F\'{\i}sicas}
+La Tabla~\ref{tab:senales_subsistemas} sintetiza las variables f\'{\i}sicas y restricciones de hardware que gobiernan cada etapa.
+
+\begin{table}[H]
+  \centering
+  \caption{Mapeo de se\~nales, unidades y restricciones de operaci\'on por subsistema.}
+  \label{tab:senales_subsistemas}
+  \renewcommand{\arraystretch}{1.25}
+  \small
+  \begin{tabularx}{\linewidth}{lXccX}
+    \toprule
+    \textbf{Subsistema} & \textbf{Descripci\'on} & \textbf{Entrada} & \textbf{Salida} & \textbf{Restricci\'on f\'{\i}sica} \\
+    \midrule
+    ESP32 / Algoritmo & C\'alculo del control & Error $e(t)$ [rad] & Ciclo de trabajo [\%] & Rango saturado en $[0,\,100]\%$. \\
+    Puente H + Motor  & Modulaci\'on $\to$ Empuje & PWM [\%] & Fuerza $F$ [N] & Unidireccionalidad ($F \geq 0$). \\
+    Cuerpo R\'{\i}gido & Torque $\to$ Giro angular & $F$ [N] & Posici\'on $\theta$ [rad] & Rango angular $[-30^\circ,\,120^\circ]$; no lineal $\cos(\theta)$. \\
+    Sensor AS5600     & Campo magn\'etico $\to$ \'Angulo & Flujo magn\'etico & Registro 12 bits & Resoluci\'on $0{,}0879^\circ$. \\
+    Sensor BMI160     & Coriolis $\to$ Giroscopio & Giro f\'{\i}sico & Velocidad $\dot{\theta}$ [$\mathrm{^\circ/s}$] & Ruido instrumental de fondo. \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
+
+\subsection{Especificaciones de Desempe\~no a Definir con el Equipo}
+Para la selecci\'on de la estrategia de control se establecen como base de discusi\'on:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Error en estado estacionario:} $e_{ss} \to 0$ ante consignas constantes de \'angulo.
+  \item \textbf{Rango de operaci\'on:} Seguimiento en la regi\'on estable e invertida ($\theta \in [0^\circ,\,90^\circ]$).
+  \item \textbf{Criterios transitorios:} Tiempo de asentamiento $t_s$ y sobrepaso m\'aximo $M_p$ a concertar en la etapa de s\'{\i}ntesis.
+  \item \textbf{Tolerancia a perturbaciones:} Comportamiento ante ca\'{\i}das de tensi\'on del actuador e incertidumbre del centro de masa.
+\end{itemize}

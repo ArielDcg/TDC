@@ -1,74 +1,83 @@
 % ============================================================
 %  SECCIÓN 4: DEFINICIÓN DE LA PLANTA Y CARACTERIZACIÓN DE PARÁMETROS
 % ============================================================
-\section{Definición de la planta y Caracterización de Parámetros}
+\section{Definici\'on de la planta y Caracterizaci\'on de Par\'ametros}
 
-La precisión predictiva del modelo linealizado en espacio de estados y la robustez del controlador a diseñar dependen de una determinación rigurosa de los parámetros físicos de la planta. Esta sección expone la metodología de obtención de parámetros directos e indirectos, junto con la cuantificación formal de sus fuentes de incertidumbre.
+Esta secci\'on recopila la informaci\'on metrol\'ogica verificada de la plataforma f\'{\i}sica y la metodolog\'{\i}a de caracterizaci\'on experimental dise\~nada para determinar los par\'ametros est\'aticos y din\'amicos de la planta.
 
-\subsection{Metodología de Obtención de Parámetros}
+\subsection{Metodolog\'{\i}a de Obtenci\'on de Par\'ametros}
 
-\subsubsection{Parámetros de Medición Directa}
-Corresponden a magnitudes geométricas y físicas evaluadas directamente sobre la estructura física mediante instrumentación metrológica:
+\subsubsection{Par\'ametros de Medici\'on Directa}
+Corresponden a las propiedades f\'{\i}sicas y geom\'etricas evaluadas de forma directa sobre el ensamble con instrumental b\'asico de laboratorio:
 \begin{itemize}[leftmargin=*]
-  \item \textbf{Radio al eje del motor ($r$):} Distancia medida con calibrador pie de rey de precisión desde el centro geométrico del eje del pivote hasta la línea de aplicación del empuje del motor:
+  \item \textbf{Radio al eje del motor ($r$):} Distancia medida con calibrador vernier (pie de rey) desde el centro del eje del pivote hasta la l\'{\i}nea media del actuador:
   \begin{equation}
-    r = 0.1350\,\mathrm{m} \quad (135.0\,\mathrm{mm})
+    r = 0{,}1350\,\mathrm{m} \quad (135{,}0\,\mathrm{mm})
   \end{equation}
-  \item \textbf{Masa total oscilante ($m$):} Masa del ensamble móvil completo (brazo de acrílico, motor DC, hélice, soporte angular 3D, tornillería e insertos) registrada en una balanza analítica digital de resolución $0.1\,\mathrm{g}$:
+  \item \textbf{Masa total del conjunto oscilante ($m$):} Registrada en balanza anal\'{\i}tica digital para el brazo m\'ovil completo (acr\'{\i}lico, micromotor DC, h\'elice, cables y sensor IMU montado):
   \begin{equation}
-    m = 0.0300\,\mathrm{kg} \quad (30.0\,\mathrm{g})
+    m = 0{,}0300\,\mathrm{kg} \quad (30{,}0\,\mathrm{g})
   \end{equation}
-  \item \textbf{Aceleración gravitacional ($g$):} Valor de referencia local para la ciudad de Bogotá D.C. ($2600\,\mathrm{m.s.n.m.}$):
+  \item \textbf{Aceleraci\'on de la gravedad ($g$):} Valor de referencia local para Bogot\'a D.C.:
   \begin{equation}
-    g = 9.81\,\mathrm{m/s^2}
+    g = 9{,}81\,\mathrm{m/s^2}
   \end{equation}
 \end{itemize}
 
-\subsubsection{Parámetros Indirectos y Caracterización Experimental}
-Aquellas propiedades que no admiten medición directa requirieron el diseño de protocolos experimentales dedicados y modelado por elementos finitos/CAD:
+\subsubsection{Par\'ametros Indirectos y Metodolog\'{\i}a Experimental}
+Aquellas propiedades que no pueden medirse con un instrumento simple cuentan con procedimientos de c\'alculo e identificaci\'on experimental dedicados:
 
 \begin{enumerate}[leftmargin=*]
   \item \textbf{Distancia al Centro de Masa ($c$):} 
-  Distancia axial desde el pivote hasta el centro de gravedad del conjunto móvil. Se determinó integrando las geometrías con ayuda del entorno CAD \textit{Autodesk Fusion 360}.
+  Distancia desde el eje de rotaci\'on hasta el baricentro del conjunto m\'ovil. Se estim\'o a partir del modelo CAD en \textit{Autodesk Fusion 360} con las geometr\'{\i}as del brazo y densidades de material:
   \begin{equation}
-    c = 0.0407\,\mathrm{m} \quad (40.68\,\mathrm{mm})
+    c \approx 0{,}0407\,\mathrm{m} \quad (40{,}68\,\mathrm{mm})
   \end{equation}
 
   \item \textbf{Momento de Inercia respecto al Pivote ($I$):} 
-  Calculado en Fusion 360
+  Calculado preliminarmente a trav\'es del tensor de inercia del modelo CAD y el teorema de Steiner, sujeto a verificaci\'on din\'amica con el periodo de oscilaci\'on libre:
   \begin{equation}
-    I = I_G + m c^2 \approx 7.942 \times 10^{-5}\,\mathrm{kg\cdot m^2}
-  \end{equation}
-  Este valor resulta plenamente consistente con la frecuencia natural observada en los ensayos oscilatorios libres ($\omega_n \approx 12.28\,\mathrm{rad/s}$).
-
-  \item \textbf{Ganancia Estática de Empuje del Actuador ($K_{uf}$):} 
-  Esta ganancia engloba la conversión integral de la señal PWM en tensión efectiva sobre el motor, el par motor generado y el empuje aerodinámico de las aspas de la hélice. Dado que su dinámica eléctrica es significativamente más rápida que la respuesta mecánica del brazo, se modela como una ganancia estática $F(t) = K_{uf}\cdot u_{\mathrm{PWM}}(t)$.
-  
-  Para su caracterización se ejecutó el firmware \texttt{Varriación\_PWM} en el ESP32, aplicando una secuencia escalonada decreciente desde $90\%$ hasta $10\%$ de PWM en pasos de $2\%$, manteniendo cada nivel durante $5.0\,\mathrm{s}$ para extinguir los transitorios. A través del script de MATLAB \texttt{Gráfica\_y\_Lectura\_puerto.m}, se tomaron los promedios estables de ángulo $\theta_{\mathrm{est}}$ para cada nivel de PWM, despejando la fuerza estática requerida para el equilibrio:
-  \begin{equation}
-    \sum \tau = r F - m g c \cos(\theta_{\mathrm{est}}) = 0 \implies F = \frac{m g c}{r} \cos(\theta_{\mathrm{est}})
-  \end{equation}
-  Mediante un ajuste por regresión lineal de mínimos cuadrados ordinarios entre el PWM aplicado y la fuerza de sustentación resultante se identificó:
-  \begin{equation}
-    K_{uf} \approx 1.90 \times 10^{-3}\,\mathrm{N/\%}
+    I \approx 7{,}94 \times 10^{-5}\,\mathrm{kg\cdot m^2}
   \end{equation}
 
-  \item \textbf{Coeficiente de Fricción Viscosa ($B$):} 
-  Para desacoplar el efecto de la fuerza motriz y caracterizar las fuerzas disipativas del rodamiento y la resistencia aerodinámica pasiva, se implementó el método del \textbf{decremento logarítmico} sobre la oscilación libre subamortiguada (\texttt{Friccion} y \texttt{Envolvente.m}).
+  \item \textbf{Metodolog\'{\i}a para la Ganancia del Actuador ($K_{uf}$):} 
+  Relaciona el ciclo de trabajo de PWM aplicado al puente H con la fuerza de empuje producida por la h\'elice:
+  \begin{equation}
+    F(t) = K_{uf} \cdot u_{\mathrm{PWM}}(t)
+  \end{equation}
+  \textit{Protocolo:} El firmware del ESP32 (\texttt{Varriaci\'on\_PWM}) ejecuta un barrido escalonado descendente desde $90\%$ hasta $10\%$ en pasos de $2\%$, sosteniendo $5\,\mathrm{s}$ por escal\'on para asegurar r\'egimen permanente. En MATLAB (\texttt{Gr\'afica\_y\_Lectura\_puerto.m}), se promedia el \'angulo estable para cada nivel y se despeja la fuerza de sustentaci\'on requerida por equilibrio est\'atico, obteniendo $K_{uf}$ mediante regresi\'on lineal.
+
+  \item \textbf{Metodolog\'{\i}a para el Coeficiente de Fricci\'on ($B$):} 
+  Cuantifica las p\'erdidas por fricci\'on en el rodamiento y resistencia aerodin\'amica pasiva.
   
-  El procedimiento consistió en:
-  \begin{enumerate}[label=\alph*)]
-    \item Posicionar el brazo en un ángulo inicial estacionario aplicando un ciclo de trabajo base de $75\%$.
-    \item Interrumpir s\'ubita e instantáneamente la señal PWM a cero ($u = 0$), permitiendo que el aeropéndulo oscile libremente hacia su punto de equilibrio natural.
-    \item Registrar la serie temporal del ángulo $\theta(t)$ y la velocidad $\dot{\theta}(t)$ mediante el encoder AS5600 y la IMU BMI160 a $115200\,\mathrm{baud}$.
-    \item Identificar los instantes de tiempo $t_k$ y amplitudes de los máximos y mínimos locales $(\abs{\theta_k})$, ajustando una envolvente exponencial teórica:
-    \begin{equation}
-      \theta_{\mathrm{env}}(t) = A_0 e^{-\sigma t} \implies \ln \abs{\theta_k} = \ln(A_0) - \sigma t_k
-    \end{equation}
-    \item A partir de la pendiente de la recta semilogarítmica se determinó la tasa de decaimiento experimental $\sigma \approx 0.8176\,\mathrm{s^{-1}}$ y el periodo de oscilación amortiguada $T_d \approx 0.512\,\mathrm{s}$. Conforme a la ecuación característica de segundo orden:
-    \begin{equation}
-      2\zeta\omega_n = \frac{B r^2}{I} = 2\sigma \implies B = \frac{2\sigma I}{r^2} \approx 7.13 \times 10^{-3}\,\mathrm{N\cdot s/m}
-    \end{equation}
-  \end{enumerate}
+  \textit{Protocolo:} El firmware (\texttt{Friccion}) estabiliza el p\'endulo con PWM de $75\%$ y apaga s\'ubitamente el motor a $0\%$ para registrar la oscilaci\'on libre subamortiguada. Mediante el script \texttt{Envolvente.m} se detectan los picos locales, ajustando la envolvente exponencial $A_0 e^{-\sigma t}$ para estimar la tasa de decaimiento $\sigma$ y despejar el par\'ametro $B$.
 \end{enumerate}
 
+\subsection{Fuentes de Incertidumbre y Cuantificaci\'on Metrol\'ogica}
+Para el an\'alisis de incertidumbre instrumental (Tipo B), se asume una distribuci\'on de probabilidad rectangular de semiancho igual a la resoluci\'on del instrumento $\Delta$:
+\begin{equation}
+  u = \frac{\Delta}{\sqrt{12}}
+\end{equation}
+
+La Tabla~\ref{tab:resumen_parametros} presenta los par\'ametros de la planta, sus resoluciones instrumentales y la incertidumbre asociada.
+
+\begin{table}[H]
+  \centering
+  \caption{Par\'ametros de la planta, resoluci\'on e incertidumbre estimada.}
+  \label{tab:resumen_parametros}
+  \renewcommand{\arraystretch}{1.2}
+  \small
+  \begin{tabularx}{\linewidth}{l c c X c}
+    \toprule
+    \textbf{Par\'ametro F\'{\i}sico} & \textbf{S\'{\i}mbolo} & \textbf{Valor Nominal / Referencia} & \textbf{Resoluci\'on ($\Delta$)} & \textbf{Incertidumbre ($u$)} \\
+    \midrule
+    Radio al actuador           & $r$        & $0{,}1350\,\mathrm{m}$               & $0{,}10\,\mathrm{mm}$   & $0{,}0289\,\mathrm{mm}$ \\
+    Masa total oscilante        & $m$        & $0{,}0300\,\mathrm{kg}$              & $0{,}10\,\mathrm{g}$    & $0{,}0289\,\mathrm{g}$ \\
+    Aceleraci\'on gravedad      & $g$        & $9{,}81\,\mathrm{m/s^2}$             & --                      & Despreciable \\
+    Posici\'on centro de masa   & $c$        & $0{,}0407\,\mathrm{m}$ (CAD)         & $0{,}50\,\mathrm{mm}$   & $0{,}1443\,\mathrm{mm}$ \\
+    Momento de inercia          & $I$        & $7{,}94 \times 10^{-5}\,\mathrm{kg\cdot m^2}$ & Modelo CAD      & Por definir \\
+    Ganancia de empuje          & $K_{uf}$   & Por ajustar con regresi\'on          & $0{,}0879^\circ$        & $0{,}0254^\circ$ \\
+    Coeficiente de fricci\'on   & $B$        & Por ajustar con envolvente           & Muestreo serial         & Por definir \\
+    \bottomrule
+  \end{tabularx}
+\end{table}

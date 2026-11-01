@@ -39,6 +39,10 @@
 \tcbuselibrary{skins,breakable}
 \graphicspath{{Imagenes/}{./}}
 
+% ---------- Diagramas con TikZ ----------
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric,arrows.meta,positioning,calc}
+
 % ---------- Codigo MATLAB / C++ ----------
 \usepackage{listings}
 
@@ -86,22 +90,22 @@
 %  DATOS DEL TRABAJO
 % ============================================================
 \newcommand{\universidad}{Universidad Nacional de Colombia}
-\newcommand{\facultad}{Facultad de Ingeniería}
-\newcommand{\departamento}{Departamento de Ingeniería Mecánica y Mecatrónica}
-\newcommand{\programa}{Ingeniería Mecatrónica}
-\newcommand{\curso}{Técnicas de Control}
+\newcommand{\facultad}{Facultad de Ingenier\'{\i}a}
+\newcommand{\departamento}{Departamento de Ingenier\'{\i}a Mec\'anica y Mecatr\'onica}
+\newcommand{\programa}{Ingenier\'{\i}a Mecatr\'onica}
+\newcommand{\curso}{T\'ecnicas de Control}
 \newcommand{\tipo}{Informe de Proyecto}
-\newcommand{\profesor}{Prof.\ Jorge Iván Sofrony Esmeral}
+\newcommand{\profesor}{Prof.\ Jorge Iv\'an Sofrony Esmeral}
 \newcommand{\periodo}{2026-II}
 \newcommand{\fecha}{\today}
 
-\newcommand{\nombregrupo}{Modelado, Caracterización Experimental y Control en Espacio de Estados de un Aeropéndulo}
+\newcommand{\nombregrupo}{Modelado, Caracterizaci\'on Experimental y Control de un Aerop\'endulo}
 
 % Integrantes
 \newcommand{\integranteA}{Samuel David Negrete Lancheros}
-\newcommand{\integranteB}{Jesús David Sánchez Cobos}
+\newcommand{\integranteB}{Jes\'us David S\'anchez Cobos}
 \newcommand{\integranteC}{Leonardo Acevedo Monroy}
-\newcommand{\integranteD}{Ariel Giovanni Cárdenas Santisteban}
+\newcommand{\integranteD}{Ariel Giovanni C\'ardenas Santisteban}
 
 % Correos institucionales
 \newcommand{\correoA}{\textit{snegrete@unal.edu.co}}
@@ -118,7 +122,7 @@
 \chead{\small\tipo}
 \rhead{\small\periodo}
 \lfoot{\small\departamento{} -- \programa}
-\rfoot{\small Página~\thepage\ de~\pageref{LastPage}}
+\rfoot{\small P\'agina~\thepage\ de~\pageref{LastPage}}
 \renewcommand{\headrulewidth}{0.4pt}
 \renewcommand{\footrulewidth}{0.4pt}
 
@@ -181,9 +185,9 @@
 
 % ---------- Resumen ----------
 \begin{abstract}
-\noindent Este informe presenta el diseño, caracterización experimental, modelado matemático y control en espacio de estados de un sistema tipo \textbf{aeropéndulo}. A partir de una arquitectura integrada por un microcontrolador ESP32 de 32 bits, sensado digital magnético e inercial por bus $\mathrm{I^2C}$ (AS5600 y BMI160) y un soporte mecánico optimizado con pivote sobre rodamiento y chasis en corte láser, se identifica la dinámica no lineal rotacional. A diferencia de esquemas clásicos escalares en el dominio frecuencial, se formula una representación no lineal en variables de estado y se realiza su \textbf{linealización matricial jacobiana} alrededor de puntos de equilibrio arbitrarios. Se detallan los ensayos experimentales para la estimación de la ganancia estática de empuje ($K_{uf}$) y el coeficiente de fricción viscosa ($B$), analizando cuantitativamente las fuentes de incertidumbre para la futura síntesis de leyes de control robusto.
+\noindent Este informe presenta la estructura de dise\~no, caracterizaci\'on experimental y modelado din\'amico de un sistema mecatr\'onico tipo \textbf{aerop\'endulo}. El prototipo f\'{\i}sico est\'a construido mediante corte l\'aser en acr\'{\i}lico transparente y piezas en impresi\'on 3D, incorporando un rodamiento de bolas en el pivote, actuaci\'on con motor DC y h\'elice, y sensado digital s\'{\i}ncrono sobre bus $\mathrm{I^2C}$ (encoder magn\'etico AS5600 e IMU BMI160) gestionado por un microcontrolador ESP32. Se establece el modelo din\'amico rotacional de la planta, los protocolos experimentales para la determinaci\'on de la ganancia est\'atica de empuje ($K_{uf}$) y el amortiguamiento viscoso ($B$), el c\'alculo de incertidumbres metrol\'ogicas y la linealizaci\'on alrededor de puntos de operaci\'on para la posterior s\'{\i}ntesis del sistema de control.
 \\[4pt]
-\textbf{Palabras clave:} Aeropéndulo, linealización matricial, espacio de estados, caracterización experimental, identificación de parámetros, incertidumbre, control moderno.
+\textbf{Palabras clave:} Aerop\'endulo, linealizaci\'on alrededor de punto de operaci\'on, caracterizaci\'on experimental, identificaci\'on param\'etrica, incertidumbre instrumental, control de posici\'on.
 \end{abstract}
 
 % ============================================================
@@ -200,8 +204,21 @@
 % ============================================================
 %  REFERENCIAS BIBLIOGRÁFICAS
 % ============================================================
-%\begin{thebibliography}{9}
-%\end{thebibliography}
+\begin{thebibliography}{9}
+\bibitem{ogata}
+K.~Ogata, \emph{Ingenier\'{\i}a de Control Moderna}, 5.\textsuperscript{a}~ed., Pearson Educaci\'on, 2010.
+
+\bibitem{dorf}
+R.~C.~Dorf y R.~H.~Bishop, \emph{Sistemas de Control Moderno}, 10.\textsuperscript{a}~ed., Pearson Prentice Hall, 2005.
+
+\bibitem{khalil}
+H.~K.~Khalil, \emph{Nonlinear Systems}, 3.\textsuperscript{rd}~ed., Prentice Hall, 2002.
+
+\bibitem{as5600}
+AMS~AG, \emph{AS5600 12-Bit Programmable Contactless Potentiometer Datasheet}, 2018.
+
+\bibitem{bmi160}
+Bosch~Sensortec, \emph{BMI160 Small, Low Power Inertial Measurement Unit (IMU) Datasheet}, 2015.
+\end{thebibliography}
 
 \end{document}
-
