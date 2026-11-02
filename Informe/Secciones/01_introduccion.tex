@@ -1,0 +1,14 @@
+% ============================================================
+%  SECCIÓN 1: INTRODUCCIÓN
+% ============================================================
+\section{Introducción}
+
+El aeropéndulo constituye una de las plataformas experimentales más representativas y desafiantes en el ámbito de la teoría y práctica del control automático. Al tratarse de un cuerpo rígido con libertad de oscilación alrededor de un eje fijo impulsado por el empuje aerodinámico generado por un conjunto motor-hélice, el sistema exhibe un comportamiento dinámico no lineal, acoplamientos aerodinámicos complejos y susceptibilidad ante perturbaciones externas y dinámicas no modeladas.
+
+El objetivo general de este proyecto es abordar el ciclo completo de ingeniería de control sobre un prototipo mecatrónico de aeropéndulo diseñado a la medida:
+\begin{itemize}[leftmargin=*]
+  \item \textbf{Diseño e integración electromecánica:} Uso de procesos de manufactura rápida (corte láser e impresión 3D), un pivote soportado por rodamientos de precisión y sensado digital por medio de un microcontrolador ESP32.
+  \item \textbf{Caracterización paramétrica experimental:} Diseño y ejecución de ensayos dinámicos y cuasiestáticos para estimar con precisión la ganancia del actuador ($K_{uf}$) y el coeficiente de disipación viscosa ($B$).
+  \item \textbf{Modelado y linealización matricial:} Formulación de las ecuaciones dinámicas no lineales en el espacio de estados y obtención del modelo linealizado mediante el cálculo de matrices jacobianas alrededor de puntos de operación arbitrarios.
+\end{itemize}
+

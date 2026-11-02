@@ -1,0 +1,95 @@
+% ============================================================
+%  SECCIÓN 2: PLANTEAMIENTO DEL PROBLEMA
+% ============================================================
+\section{Planteamiento del problema} 
+
+\subsection{Definición del Sistema Físico y Arquitectura General}
+El problema de control planteado consiste en gobernar la posición angular $\theta(t)$ de un aeropéndulo en el plano vertical mediante la generación de empuje por medio de un conjunto motor-hélice. La planta exhibe una dinámica no lineal debido al momento cuasado por la fuerza gravitacional dependiente de la posición angular y al comportamiento aerodinámico del flujo generado por las aspas.
+
+La plataforma física comprende una serie de subsistemas interconectados:
+
+\begin{enumerate}[leftmargin=*]
+  \item \textbf{Unidad de Cómputo y Control (ESP32):} 
+  Microcontrolador de 32 bits a $240\,\mathrm{MHz}$. Genera la señal de modulación por ancho de pulso (\textit{PWM}) para el control de potencia, gestiona la adquisición síncrona de datos por bus digital $\mathrm{I^2C}$ a $400\,\mathrm{kHz}$ (GPIO 21 para SDA y GPIO 22 para SCL) y ejecuta el lazo de control.
+
+  \item \textbf{Etapa de Potencia y Actuador:} 
+  Módulo driver / puente H conectado a los pines de control del ESP32 (GPIO 25 y 26). Excita un micromotor DC con hélice bipala de tracción, convirtiendo el ciclo de trabajo de PWM en una fuerza de empuje aerodinámico $F(t)$ aplicada en el extremo libre del brazo.
+
+  \item \textbf{Estructura Mecánica y Montaje de Pivote:} 
+  \begin{itemize}[noitemsep]
+    \item \textbf{Chasis y brazo en acrílico:} Fabricados mediante corte por láser (\texttt{LaserFinal.dxf}). Comprende la base horizontal de soporte, la torre vertical de fijación y el brazo oscilante alargado.
+    \item \textbf{Piezas en impresión 3D (PLA):} Fabricadas por manufactura aditiva FDM, incluyendo la brida soporte del pivote atornillada a la torre (\texttt{InsertoRoda.stl}), el soporte angular para el actuador (\texttt{Angulo.stl}) y los topes mecánicos.
+    \item \textbf{Inserto con rodamiento y eje de acero:} El alojamiento impreso contiene un rodamiento de bolas sobre el eje cilíndrico de acero, minimizando la fricción por rozamiento directo.
+  \end{itemize}
+
+  \item \textbf{Subsistema Sensorial Digital:} 
+  \begin{itemize}[noitemsep]
+    \item \textbf{Encoder magnético absoluto AS5600:} Resolución de 12 bits ($4096$ pasos por revolución, resolución nominal de $0{,}0879^\circ$), comunicado a través del protocolo digital $\mathrm{I^2C}$. Montado en la parte posterior del pivote, enfrentado coaxialmente a un imán diametral fijado mediante un portaimán impreso (\texttt{TaponIman.stl}).
+    \item \textbf{Unidad de Medición Inercial BMI160:} Sensor inercial montado directamente sobre el cuerpo del brazo de acrílico y conectado al bus $\mathrm{I^2C}$ (dirección $0\mathrm{x}68$), para el registro directo de la velocidad angular ($\dot{\theta} \equiv \mathrm{GyroZ}$).
+  \end{itemize}
+\end{enumerate}
+
+\subsection{Esquema Funcional de Lazo Cerrado}
+En la Figura~\ref{fig:esquema_lazo_cerrado} se representa el diagrama de bloques del sistema en lazo cerrado, detallando las señales que fluyen entre cada subsistema.
+
+\begin{figure}[H]
+  \centering
+  \resizebox{\linewidth}{!}{%
+  \begin{tikzpicture}[
+      block/.style={draw, fill=blue!5, rounded corners=2pt, minimum height=1.0cm, minimum width=1.9cm, align=center, font=\small},
+      sum/.style={draw, circle, inner sep=0pt, minimum size=6mm, font=\small},
+      sensor/.style={draw, fill=green!6, rounded corners=2pt, minimum height=0.9cm, minimum width=2.2cm, align=center, font=\small},
+      arrow/.style={-{Latex[scale=0.9]}, semithick},
+      node distance=1.0cm and 0.8cm
+    ]
+
+    % Nodos directos
+    \node (ref) {$\theta_{\mathrm{ref}}$};
+    \node [sum, right=0.6cm of ref] (sum) {$+$};
+    \node [block, right=0.7cm of sum] (ctrl) {\textbf{ESP32}\\\footnotesize Algoritmo};
+    \node [block, right=0.9cm of ctrl] (driver) {\textbf{Driver}\\\footnotesize Puente H};
+    \node [block, right=0.9cm of driver] (motor) {\textbf{Motor-Hélice}\\\footnotesize Empuje $K_{uf}$};
+    \node [block, right=0.9cm of motor] (planta) {\textbf{Aeropéndulo}\\\footnotesize Dinámica rotacional};
+    \node [right=0.8cm of planta] (salida) {$\theta(t)$};
+
+    % Conexiones trayectoria directa
+    \draw [arrow] (ref) -- node[above, font=\footnotesize] {$+$} (sum);
+    \draw [arrow] (sum) -- node[above, font=\footnotesize] {$e(t)$} (ctrl);
+    \draw [arrow] (ctrl) -- node[above, font=\footnotesize] {PWM} (driver);
+    \draw [arrow] (driver) -- node[above, font=\footnotesize] {$V_{\mathrm{mot}}$} (motor);
+    \draw [arrow] (motor) -- node[above, font=\footnotesize] {$F(t)$} (planta);
+    \draw [arrow] (planta) -- (salida);
+
+    % Lazo de realimentacion
+    \node [sensor, below=1.2cm of $(driver)!0.5!(motor)$] (sensores) {\textbf{Sensores Digitales} $\mathbf{(I^2C)}$\\\footnotesize AS5600 ($\theta$) / BMI160 ($\dot{\theta}$)};
+
+    \draw [arrow] ($(planta.east)+(0.3,0)$) |- (sensores.east);
+    \draw [arrow] (sensores.west) -| node[pos=0.9, left, font=\footnotesize] {$-$} (sum);
+
+  \end{tikzpicture}%
+  }
+  \caption{Esquema en bloques del aeropéndulo en lazo cerrado.}
+  \label{fig:esquema_lazo_cerrado}
+\end{figure}
+
+\subsection{Señales de Entrada y Salida por Subsistema}
+La Tabla~\ref{tab:senales_subsistemas} sintetiza las variables físicas y unidades que intervienen en cada etapa del sistema.
+
+\begin{table}[H]
+  \centering
+  \caption{Mapeo de señales y unidades por subsistema.}
+  \label{tab:senales_subsistemas}
+  \renewcommand{\arraystretch}{1.25}
+  \small
+  \begin{tabularx}{\linewidth}{lXcc}
+    \toprule
+    \textbf{Subsistema} & \textbf{Descripción} & \textbf{Entrada} & \textbf{Salida} \\
+    \midrule
+    ESP32 / Algoritmo & Cálculo del control & Error $e(t)$ [rad] & Ciclo de trabajo [\%] \\
+    Puente H + Motor  & Modulación $\to$ Empuje & PWM [\%] & Fuerza $F$ [N] \\
+    Planta            & Torque $\to$ Giro angular & $F$ [N] & Posición $\theta$ [rad] \\
+    Sensor AS5600     & Campo magnético $\to$ ángulo & Flujo magnético & Registro 12 bits \\
+    Sensor BMI160     & Giroscopio & Giro físico & Velocidad $\dot{\theta}$ [$\mathrm{^\circ/s}$] \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
