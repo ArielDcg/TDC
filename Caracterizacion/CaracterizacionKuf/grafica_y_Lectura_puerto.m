@@ -1,0 +1,122 @@
+%% Captura de datos del ESP32 (caracterizacion PWM - pendulo invertido)
+%=====================================================================
+%Se corre con el codigo de la esp32 en la carpeta "Variación_PWM" en el codigo se puede
+%elegir que barrido hacer, si ida y vuelta , solo un sentido o aleatorio.
+%=====================================================================
+
+clear; clc;
+
+puerto     = "/dev/ttyUSB0";
+baudios    = 115200;
+timeout_s  = 600;
+archivoCSV = "datos_pwm_ambos_Sentidos.csv";
+
+% Todos los archivos de salida (.csv, .mat, .png) usan este mismo nombre base
+[~, nombreBase] = fileparts(archivoCSV);
+
+%% Abrir puerto
+delete(serialportfind);                 % libera puertos abiertos de corridas anteriores
+s = serialport(puerto, baudios);
+configureTerminator(s, "LF");
+s.Timeout = 2;
+
+setDTR(s, false);
+setRTS(s, true);
+pause(0.1);
+setRTS(s, false);
+flush(s);
+disp("Esperando datos del ESP32...");
+
+%% Leer y parsear
+filas = zeros(0, 4);
+t0 = tic;
+terminado = false;
+
+patron = "^\d+,\d+,-?\d+(\.\d+)?,(-?\d+|NaN),?$";
+
+while ~terminado && toc(t0) < timeout_s
+    if s.NumBytesAvailable == 0
+        pause(0.01);                    % nada nuevo: espera sin bloquear ni dar warnings
+        continue;
+    end
+
+    linea = readline(s);                % hay datos: lee la linea completa
+    if isempty(linea) || ismissing(linea)
+        continue;
+    end
+    linea = strtrim(linea);
+    if linea == ""
+        continue;
+    end
+
+    if contains(linea, "EXPERIMENTO COMPLETADO")
+        terminado = true;
+        break;
+    end
+
+    if ~isempty(regexp(linea, patron, "once"))
+        partes = split(linea, ",");
+        vals = str2double(partes(1:4));  % ignora una posible coma final
+        filas(end+1, :) = vals(:)';      %#ok<SAGROW>
+        if mod(size(filas,1), 10) == 0
+            fprintf("  %d muestras (PWM %d%%)\n", size(filas,1), vals(1));
+        end
+    end
+end
+clear s                                 % cierra el puerto
+
+if ~terminado
+    warning("No llego el mensaje de fin; se guardan los datos recibidos hasta ahora.");
+end
+
+%% Tabla
+T = array2table(filas, "VariableNames", ...
+    ["PWM_pct" "Tiempo_ms" "Angulo_deg" "GyroZ"]);
+T.Tiempo_s = (T.Tiempo_ms - T.Tiempo_ms(1)) / 1000;
+T = movevars(T, "Tiempo_s", "After", "Tiempo_ms");
+
+disp(head(T));
+fprintf("Total: %d muestras, %d niveles de PWM\n", height(T), numel(unique(T.PWM_pct)));
+
+%% Resumen por nivel (con columna para anotar la fuerza medida)
+Resumen = groupsummary(T, "PWM_pct", "mean", ["Angulo_deg" "GyroZ"]);
+Resumen.Fuerza_N = nan(height(Resumen), 1);   % <-- rellena a mano con tu dinamometro
+disp(Resumen);
+
+writetable(T, archivoCSV);
+
+%% Regresion lineal: angulo medio vs PWM
+p = polyfit(Resumen.PWM_pct, Resumen.mean_Angulo_deg, 1);   % grado 1 = recta
+pendiente = p(1);        % [deg/%]
+ordenada  = p(2);        % [deg]
+
+xfit = linspace(min(Resumen.PWM_pct), max(Resumen.PWM_pct), 100);
+yfit = polyval(p, xfit);                                    % recta para graficar
+
+yres = polyval(p, Resumen.PWM_pct);                         % ajuste en los puntos medidos
+R2 = 1 - sum((Resumen.mean_Angulo_deg - yres).^2) / ...
+         sum((Resumen.mean_Angulo_deg - mean(Resumen.mean_Angulo_deg)).^2);
+
+regresion = struct("p", p, "pendiente", pendiente, "ordenada", ordenada, ...
+                   "R2", R2, "xfit", xfit, "yfit", yfit);
+
+%% Grafica rapida
+figure;
+subplot(2,1,1); hold on; grid on;
+plot(T.PWM_pct, T.Angulo_deg, "Color", [0.7 0.7 0.7], "DisplayName", "Datos");
+plot(Resumen.PWM_pct, Resumen.mean_Angulo_deg, "ko", "MarkerFaceColor", "k", ...
+     "DisplayName", "Promedio por nivel");
+plot(xfit, yfit, "r-", "LineWidth", 1.5, "DisplayName", ...
+     sprintf("Ajuste: y = %.4f·PWM + %.3f (R^2 = %.3f)", pendiente, ordenada, R2));
+xlabel("PWM [%]"); ylabel("Angulo [deg]");
+title("Respuesta durante la rampa de PWM");
+legend("Location", "best");
+
+subplot(2,1,2);
+plot(T.Tiempo_s, T.GyroZ); grid on;
+xlabel("Tiempo [s]"); ylabel("GyroZ [raw]");
+
+%% Guardar grafico y resultados con el mismo nombre del CSV
+saveas(gcf, nombreBase + ".png");
+save(nombreBase + ".mat", "T", "Resumen", "regresion");
+fprintf("Guardado: %s.csv, %s.png y %s.mat\n", nombreBase, nombreBase, nombreBase);

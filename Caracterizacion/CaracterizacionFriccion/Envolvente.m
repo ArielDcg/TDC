@@ -1,9 +1,20 @@
 %% Captura de la oscilacion libre del pendulo y calculo de la envolvente
 % Cabezal: "INICIO EXPERIMENTO" -> empieza a guardar datos
 % Cola:    "FIN"                -> deja de guardar y cierra el puerto
-% Formato de datos: 0,Tiempo_ms,Angulo_deg,GyroZ
-% Requisitos: MATLAB R2019b o superior.
+% Formato de datos: %PWM,Tiempo_ms,Angulo_deg,GyroZ
+% Requisitos: MATLAB R2019b o superior y Curve Fitting Toolbox (funcion fit).
 % Cierra el monitor serial de PlatformIO/Arduino antes de correr esto.
+
+
+%=====================================================================
+%Se corre con el codigo de la esp32 en la carpeta "Friccion" en el código 
+% se puede ajustar desde que angulo se lanza.
+%=====================================================================
+%=====================================================================
+%Si quiere volver a graficar una envolvente importe el csv correspondiete,
+%se hicieron 4 experimentos de 30,60,90,120 grados importe el csv con el
+%nombre Tk y ejecute la sección "envolvente" y "gráfica"
+%=====================================================================
 
 clear; clc;
 
@@ -12,16 +23,16 @@ baudios          = 115200;
 timeoutInicio_s  = 40;       % espera maxima del cabezal (el motor corre 5 s al arrancar)
 timeoutCaptura_s = 180;      % duracion maxima de la captura
 minMuestras      = 200;      % ignora un "FIN" que llegue antes de tener estas muestras
-archivoCSV       = "datos_pendulo.csv";
+archivoCSV       = "Coeff_fric.csv";
 
-% 4 campos: 0, Tiempo_ms, Angulo (decimal), GyroZ (entero o NaN)
+% 4 campos: %PWM, Tiempo_ms, }[Angulo (decimal), GyroZ (entero o NaN)
 patron = "^\d+,\d+,-?\d+(\.\d+)?,(-?\d+|NaN),?$";
 
 %% Abrir puerto y reiniciar el ESP32
 delete(serialportfind);                 % libera puertos abiertos de corridas anteriores
 s = serialport(puerto, baudios);
 configureTerminator(s, "LF");
-s.Timeout = 10;
+s.Timeout = 40;
 
 setDTR(s, false);
 setRTS(s, true);
@@ -73,60 +84,66 @@ if ~fin
 end
 
 %% Tabla
-T = array2table(filas, "VariableNames", ["Tiempo_ms" "Angulo_deg" "GyroZ"]);
-[~, iu] = unique(T.Tiempo_ms, "stable");   % quita tiempos repetidos
-T = T(iu, :);
-T.Tiempo_s = (T.Tiempo_ms - T.Tiempo_ms(1)) / 1000;
-T = movevars(T, "Tiempo_s", "After", "Tiempo_ms");
-fprintf("%d muestras en %.1f s (~%.0f Hz)\n", height(T), T.Tiempo_s(end), height(T)/T.Tiempo_s(end));
+Tk = array2table(filas, "VariableNames", ["Tiempo_ms" "Angulo_deg" "GyroZ"]);
+[~, iu] = unique(Tk.Tiempo_ms, "stable");   % quita tiempos repetidos
+Tk = Tk(iu, :);
+Tk.Tiempo_s = (Tk.Tiempo_ms - Tk.Tiempo_ms(1)) / 1000;
+Tk = movevars(Tk, "Tiempo_s", "After", "Tiempo_ms");
+fprintf("%d muestras en %.1f s (~%.0f Hz)\n", height(Tk), Tk.Tiempo_s(end), height(Tk)/Tk.Tiempo_s(end));
+
+writetable(Tk, archivoCSV);
 
 %% Envolvente
-t = T.Tiempo_s;
-y = T.Angulo_deg;
+t = Tk.Tiempo_s;
+y = Tk.Angulo_deg;
 
 prom = 0.01 * max(abs(y));              % prominencia minima para contar un pico
 iMax = islocalmax(y, "SamplePoints", t, "MinProminence", prom);
 iMin = islocalmin(y, "SamplePoints", t, "MinProminence", prom);
-% islocalmax/islocalmin no cuentan el primer punto, que aqui es el pico del
-% lanzamiento. Se fuerza como pico si es el extremo de sus primeras muestras.
+
+% Fuerza el primer punto (pico del lanzamiento) si es el extremo de sus primeras muestras
 ini = y(1:min(10, numel(y)));
 if y(1) >= max(ini)
     iMax(1) = true;
 elseif y(1) <= min(ini)
     iMin(1) = true;
 end
-
 assert(nnz(iMax) >= 3 && nnz(iMin) >= 3, "Muy pocos picos; baja la prominencia (prom).");
 
-% Envolvente por picos (interpolada); da NaN fuera del primer/ultimo pico
-envSup = interp1(t(iMax), y(iMax), t, "pchip");
-envInf = interp1(t(iMin), y(iMin), t, "pchip");
+% Ajustes exponenciales a los picos
+envSup = fit(t(iMax), y(iMax), "exp1");   % envolvente superior
+envInf = fit(t(iMin), y(iMin), "exp1");   % envolvente inferior
 
-% Envolvente exponencial A0*exp(-sigma*t) ajustada a todos los picos
 tp = [t(iMax); t(iMin)];
-ap = max(abs([y(iMax); y(iMin)]), eps);
-c  = polyfit(tp, log(ap), 1);
-sigma  = -c(1);
-A0     = exp(c(2));
-envExp = A0 * exp(-sigma * t);
+ap = max(abs([y(iMax); y(iMin)]), eps);  % magnitud de todos los picos, con signo negativo
 
-Td = mean(diff(t(iMax)));               % periodo amortiguado
-fprintf("Envolvente exponencial: A0 = %.3f deg, sigma = %.4f 1/s\n", A0, sigma);
-fprintf("Periodo amortiguado: %.4f s (%.3f Hz)\n", Td, 1/Td);
-
-%% Guardar
-writetable(T, archivoCSV);
-save("datos_pendulo.mat", "T", "envSup", "envInf", "A0", "sigma", "Td");
-
+%==================Parametro para simulink, se guarda en el .mat ========
+c  = fit(tp, ap, "exp1");                 % ajuste conjunto
+%========================================================================
 %% Grafica
 figure; hold on; grid on;
 plot(t, y, "Color", [0.65 0.65 0.65], "DisplayName", "Angulo");
-plot(t, envSup, "r", "LineWidth", 1.5, "DisplayName", "Envolvente (picos)");
-plot(t, envInf, "r", "LineWidth", 1.5, "HandleVisibility", "off");
-plot(t, envExp, "b--", "LineWidth", 1.2, "DisplayName", "Envolvente exponencial");
-plot(t, -envExp, "b--", "LineWidth", 1.2, "HandleVisibility", "off");
+% plot() de un objeto fit no acepta "DisplayName" como argumento, asi que se
+% asigna despues sobre el handle de la linea
+h = plot(c);      set(h, "DisplayName", "Curva trazada con valor absoluto de los picos");
+h = plot(envInf); set(h, "DisplayName", "Curva trazada con picos negativos");
+h = plot(envSup); set(h, "DisplayName", "Curva trazada con picos positivos");
 plot(t(iMax), y(iMax), "kv", "MarkerSize", 4, "DisplayName", "Picos");
 plot(t(iMin), y(iMin), "k^", "MarkerSize", 4, "HandleVisibility", "off");
 xlabel("Tiempo [s]"); ylabel("Angulo [deg]");
 title("Oscilacion libre del pendulo");
-legend("Location", "best");
+legend("Location", "southeast");
+
+% Coeficientes de las exponenciales y = a*exp(b*t)
+coef = {sprintf('Superior: y = %.3f e^{%.4f t}', envSup.a, envSup.b); ...
+        sprintf('Inferior: y = %.3f e^{%.4f t}', envInf.a, envInf.b); ...
+        sprintf('Conjunta: y = %.3f e^{%.4f t}', c.a, c.b)};
+text(0.98, 0.98, coef, "Units", "normalized", ...
+     "HorizontalAlignment", "right", "VerticalAlignment", "top", ...
+     "BackgroundColor", "w", "EdgeColor", [0.7 0.7 0.7]);
+
+%% Guardar grafico y ajustes con el mismo nombre del CSV
+[~, nombreBase] = fileparts(archivoCSV);
+saveas(gcf, nombreBase + ".png");
+save(nombreBase + ".mat", "c", "envInf", "envSup");
+fprintf("Grafico guardado en %s.png y ajustes en %s.mat\n", nombreBase, nombreBase);

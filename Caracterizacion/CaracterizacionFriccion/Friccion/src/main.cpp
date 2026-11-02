@@ -4,34 +4,16 @@
 #include "AS5600.h"
 
 
-#define IN1 25   
-#define IN2 26   
-
 #define SDA_PIN 21
 #define SCL_PIN 22
 
-float percent = 75;
 bool experimentRunning = true;
-
-int percentToPWM(int percent) {
-  return map(percent, 0, 100, 0, 255);
-}
-
-
-void setMotorPWM(int pwmValue) {
-  analogWrite(IN1, pwmValue);
-  analogWrite(IN2, 0);
-}
-
-void stopMotor() {
-  analogWrite(IN1, 0);
-  analogWrite(IN2, 0);
-}
+const float ANGLE_START = 150.0;
 
 DFRobot_BMI160 bmi160;
 AS5600 as5600;
 const int8_t BMI160_ADDR   = 0x68;
-const float  ANGLE_OFFSET  = 192.217+28.388;  
+const float  ANGLE_OFFSET  = 220.342;  
 
 
 float readAngle() {
@@ -66,22 +48,28 @@ void setup() {
 }
 
 void loop() {
+
   int16_t gyro[3] = {0, 0, 0};
   if (experimentRunning) {
-    int pwmRaw = percentToPWM(percent);
-
-    setMotorPWM(pwmRaw);
-    delay(5000);
-    experimentRunning = false;
-    Serial.println("INICIO EXPERIMENTO");
-    stopMotor();
     
+    bmi160.getGyroData(gyro);
+    float angle = readAngle();
+    if (gyro[2] > 300  && angle-ANGLE_START < 0.7 && angle-ANGLE_START > -0.7) {
+      Serial.println("INICIO EXPERIMENTO");
+      experimentRunning = false;
+    }
+    else {
+      Serial.printf("%d,%lu,%.3f,", 1, millis(), angle);
+      Serial.printf("%d",gyro[2]);
+      Serial.println();
+    }
+   
   }
   else {
     
     bool gyroOk = (bmi160.getGyroData(gyro) == BMI160_OK);
     float angle = readAngle();
-    if (angle < 0.7 && angle > -0.7 && gyroOk && gyro[2] < 10 && gyro[2] > -10) {
+    if (angle < 0.7 && angle > -0.7 && gyroOk && gyro[2] < 5 && gyro[2] > -5) {
       Serial.println("Pendulo en reposo. FIN");
     }
 
