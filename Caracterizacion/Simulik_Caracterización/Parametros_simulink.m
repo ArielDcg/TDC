@@ -5,6 +5,7 @@ lc = 40.67e-3; % al centro de masa [m]
 I = 3.2*382.232e-7; % inercia brazo [kg*m^2]
 m = 30.00e-3; % masa  brazo [kg]
 g = 9.81; % gravedad [m/s^2]
+ThetaLin = deg2rad(50);
 %========Frición Viscosa =========== 
 %B = -c.b*I/r^2;
 
@@ -37,3 +38,9 @@ kuf_d = -0.0187;
 %==============Secuecia de entrada =================
 repeating_sequence = [0 2 4 6 8];
 step_interval = 10;   % [s] duracion de cada escalon
+
+s = tf('s');
+G = (r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
+bode(G)
+rlocus(G)
+
