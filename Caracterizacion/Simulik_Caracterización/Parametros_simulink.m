@@ -40,7 +40,37 @@ repeating_sequence = [0 2 4 6 8];
 step_interval = 10;   % [s] duracion de cada escalon
 
 s = tf('s');
-G = (r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
-bode(G)
+G = kuf*(r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
+%bode(G)
 rlocus(G)
+kp = 94.008;
 
+% Ganancia integral
+rlocus(-G/(s*(-1-kp*G)))
+% hold on
+
+ki = 188.016;
+CPI = (kp+ki/s);
+zpk(feedback(CPI*G,1))
+step(feedback(CPI*G,1))
+
+rlocus(s*G/(1+(ki/s)*G+kp*G))
+kd = 11.751;
+CPID = (kp+ki/s+s*kd);
+zpk(feedback(CPID*G,1))
+step(feedback(CPID*G,1))
+Sys = CPID*G;
+
+% %% Red combinada
+% %Red de adelanto
+% bode(Sys)
+% mfrc=85;
+% wgc= 8.84; %visual, se puede iterar
+% [mm ff]=bode(Sys,wgc);
+% phiComb=mfrc - (ff+180) + 6;
+% bcomb= (1+sin(phiComb*pi/180))/(1-sin(phiComb*pi/180))
+% T2Comb = 1/(sqrt(bcomb)*wgc)
+% RadComb = (1+bcomb*T2Comb*s)/(1+T2Comb*s);
+% Sys2 = Sys * RadComb;
+% 
+% [NumLead, DenLead] = tfdata(RadComb, 'v');
