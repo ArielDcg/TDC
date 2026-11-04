@@ -34,10 +34,10 @@ double lastError = 0;
 double u = 0;
 double last_Samble_time = 0;
 double last_Samble_time_Ramp = 0;
-double reference = 120*ANG_TO_DEG;  // 70  grados, en radianes
+double reference = 130*ANG_TO_DEG;  // 70  grados, en radianes
 double N = 1000;
 double last_Derivada = 0;
-
+double sat_time;
 
 
 // Red de adelanto
@@ -120,14 +120,22 @@ void loop() {
     Proporcional = Kp * error;
     lastu = u;
     u = Proporcional + Integral + Derivada;
+    if (u > 100) {
+      u = 100;
+      //Integral = 0;
+      
+    }
+    if (u < 0) {
+      u = 0;
+      //Integral = 0;
+    }
+    
     
     //RED = (u*c1+lastu*c2-lastRED*c4)/c3;
     //lastRED = RED;
     //if (RED > 100) RED = 100;
     //if (RED < 0) RED = 0;
 
-    if (u > 100) u = 100;
-    if (u < 0) u = 0;
     lastError = error;
     last_Samble_time = millis();
     Serial.printf("Referencia: %.2f, Angulo: %.2f, Error: %.2f, Control: %.2f\n",  reference/ANG_TO_DEG, angle/ANG_TO_DEG, error, u);

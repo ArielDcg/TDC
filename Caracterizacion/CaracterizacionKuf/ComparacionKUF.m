@@ -22,10 +22,13 @@ assert(exist("c", "var") && exist("fit_exp", "var"), ...
     "Faltan c y fit_exp en el workspace: cargalos antes con load(...).");
 
 %% Parametros del modelo (Simulink)
+I = 3.2*382.232e-7; % inercia brazo [kg*m^2]
 m = 30.00e-3; % masa  brazo [kg]
 g = 9.81; % gravedad [m/s^2]
+r = 135.0e-3; % radio al motor [m]
+lc = 40.67e-3; % al centro de masa [m]
 %========Frición Viscosa =========== 
-B = -c.b*I/r^2;
+B = -6*c.b*I/r^2;
 
 %B = 0.0041; %Ajustado para seguir envolvente[Estático]
 %========Torque mínimo ==============
@@ -54,7 +57,7 @@ kuf_c = -0.0647;
 kuf_d = -0.0187;
 
 %==============Secuecia de entrada =================
-repeating_sequence = [0 2 4 6 8];
+repeating_sequence = [0 10 20 30 40 50 60 70 80 70 60 50 40 30 20 10];
 step_interval = 10;   % [s] duracion de cada escalon
 
 %=======================================================================
@@ -67,7 +70,7 @@ step_interval = 10;   % [s] duracion de cada escalon
 %========================================================================
 
 %% Configuracion
-modelo        = "PruebasKUF";   % <-- nombre del .slx (sin extension)
+modelo        = "PruebasKUF_2023b";   % <-- nombre del .slx (sin extension)
 simEnRadianes = false;                  % true si out.simout trae el angulo en rad
 puerto        = "/dev/ttyUSB0"; %cambien el puerto si lo prueban en windows
 baudios       = 115200; 
