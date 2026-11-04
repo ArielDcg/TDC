@@ -61,6 +61,7 @@ zpk(feedback(CPID*G,1))
 step(feedback(CPID*G,1))
 Sys = CPID*G;
 
+controlSystemDesigner(G)
 % %% Red combinada
 % %Red de adelanto
 % bode(Sys)
