@@ -8,46 +8,68 @@ Esta sección recopila la información metrológica verificada de la plataforma 
 \subsection{Metodología de Obtención de Parámetros}
 
 \subsubsection{Parámetros de Medición Directa}
-Corresponden a las propiedades físicas y geométricas evaluadas de forma directa sobre el ensamble con instrumental básico de laboratorio:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Radio al eje del motor ($r$):} Distancia medida desde el centro del eje del pivote hasta la línea media del actuador:
+Corresponden a las propiedades geométricas y gravimétricas evaluadas de forma directa sobre el ensamble con instrumental básico de laboratorio:
+\begin{itemize}
+  \item \textbf{Radio al eje del motor ($r$):} Distancia medida desde el centro del eje de giro del pivote hasta la línea de empuje del actuador:
   \begin{equation}
     r = 0{,}1350\,\mathrm{m} \quad (135{,}0\,\mathrm{mm})
   \end{equation}
-  \item \textbf{Masa total del conjunto oscilante ($m$):} Registrada en una gramera para el brazo móvil completo (acrílico, micromotor DC, hélice, cables y sensor IMU montado):
+  \item \textbf{Masa total del conjunto oscilante ($m$):} Registrada con balanza digital de precisión para el conjunto móvil completo (brazo de acrílico, micromotor DC, hélice, arnés de cables y sensor IMU montado):
   \begin{equation}
     m = 0{,}0300\,\mathrm{kg} \quad (30{,}0\,\mathrm{g})
   \end{equation}
-  \item \textbf{Aceleración de la gravedad ($g$):} Valor de referencia:
+  \item \textbf{Aceleración de la gravedad ($g$):} Valor local estándar:
   \begin{equation}
     g = 9{,}81\,\mathrm{m/s^2}
   \end{equation}
 \end{itemize}
 
 \subsubsection{Parámetros Indirectos y Metodología Experimental}
-
-\begin{enumerate}[leftmargin=*]
+\begin{enumerate}
   \item \textbf{Distancia al Centro de Masa ($c$):} 
-  Se estimó a partir del modelo CAD en \textit{Autodesk Fusion 360} con las geometrías del brazo y densidades de material:
+  Estimada a partir del modelo volumétrico computacional en \textit{Autodesk Fusion 360} integrando densidades y distribución de masas de cada componente:
   \begin{equation}
     c \approx 0{,}0407\,\mathrm{m} \quad (40{,}68\,\mathrm{mm})
   \end{equation}
 
   \item \textbf{Momento de Inercia respecto al Pivote ($I$):} 
-  Calculado a través del modelo CAD, sujeto a verificación dinámica con el periodo de oscilación libre:
+  Calculado inicialmente mediante el modelo CAD respecto al eje centroidal y trasladado por el teorema de ejes paralelos:
   \begin{equation}
     I \approx 7{,}94 \times 10^{-5}\,\mathrm{kg\cdot m^2}
   \end{equation}
 
-  \item \textbf{Metodología para la Ganancia del Actuador ($K_{uf}$):} 
-  Relaciona el ciclo de trabajo de PWM aplicado al puente H con la fuerza de empuje producida por la hélice:
+  \item \textbf{Ganancia del Actuador ($K_{uf}$):} 
+  Relaciona el ciclo de trabajo de PWM enviado al módulo de potencia con la fuerza de empuje aerodinámico efectiva:
   \begin{equation}
     F(t) = K_{uf} \cdot u_{\mathrm{PWM}}(t)
   \end{equation}
-  \textit{Protocolo:} El firmware del ESP32 (\texttt{Varriación\_PWM}) ejecuta un barrido escalonado descendente y ascendente entre los valores $10\%$ y $90\%$ en pasos de $2\%$, sosteniendo $5\,\mathrm{s}$ por escalón para asegurar que el sistema se estabilice. En MATLAB (\texttt{Gráfica\_y\_Lectura\_puerto.m}), se promedia el ángulo estable para cada nivel y se despeja la fuerza de sustentación requerida por equilibrio estático, obteniendo $K_{uf}$ mediante regresión lineal.
+  \textit{Protocolo experimental:} El firmware del ESP32 (\texttt{Variación\_PWM}) ejecuta un barrido escalonado (ascendente y descendente para evaluar histéresis) entre $10\%$ y $90\%$ de ciclo útil en pasos de $2\%$, sosteniendo $5\,\mathrm{s}$ por escalón para alcanzar estado estacionario. Mediante un script en MATLAB (\texttt{Gráfica\_\allowbreak y\_Lectura\_\allowbreak puerto.m}) se adquiere la posición angular media y se despeja el empuje por equilibrio estático, obteniendo $K_{uf}$ por regresión por mínimos cuadrados.
 
-  \item \textbf{Metodología para el Coeficiente de Fricción ($B$):} 
-  Cuantifica las pérdidas por fricción en el rodamiento y resistencia aerodinámica pasiva.
+  \item \textbf{Coeficiente de Fricción Viscosa ($B$):} 
+  Modela la disipación energética combinada del rodamiento mecánico y la resistencia aerodinámica pasiva del brazo.
   
-  \textit{Protocolo:} El firmware (\texttt{Friccion}) estabiliza el péndulo con PWM de $75\%$ y apaga súbitamente el motor a $0\%$ para registrar la oscilación libre subamortiguada. Mediante el script \texttt{Envolvente.m} se detectan los picos locales, ajustando la envolvente exponencial $A_0 e^{-\sigma t}$ para estimar la tasa de decaimiento $\sigma$ y despejar el parámetro $B$.
+  \textit{Protocolo experimental:} El firmware (\texttt{Friccion}) posiciona inicialmente el péndulo con $75\%$ de PWM y apaga instantáneamente el motor a $0\%$ para capturar la oscilación libre subamortiguada con el encoder AS5600. El script \texttt{Envolvente.m} identifica los máximos locales y ajusta una envolvente exponencial $A_0 e^{-\sigma t}$, de donde se deduce el coeficiente $B$.
 \end{enumerate}
+
+La Tabla~\ref{tab:parametros_planta} resume los parámetros geométricos, másicos y dinámicos determinados para la plataforma física.
+
+\begin{table}[h!]
+  \centering
+  \caption{Parámetros físicos y dinámicos del aeropéndulo.}
+  \label{tab:parametros_planta}
+  \renewcommand{\arraystretch}{1.2}
+  \footnotesize
+  \begin{tabularx}{\columnwidth}{@{}l c c c >{\raggedright\arraybackslash}X@{}}
+    \toprule
+    \textbf{Parámetro} & \textbf{Símb.} & \textbf{Valor} & \textbf{Unidad} & \textbf{Método} \\
+    \midrule
+    Radio pivote-motor  & $r$      & $0{,}1350$            & $\mathrm{m}$           & Calibrador \\
+    Masa móvil total    & $m$      & $0{,}0300$            & $\mathrm{kg}$          & Balanza digital \\
+    Gravedad local      & $g$      & $9{,}81$              & $\mathrm{m/s^2}$       & Estándar Bogotá \\
+    Distancia al c.m.   & $c$      & $0{,}0407$            & $\mathrm{m}$           & CAD Fusion 360 \\
+    Inercia rotacional  & $I$      & $7{,}94\cdot 10^{-5}$ & $\mathrm{kg\cdot m^2}$ & CAD / Ensayos \\
+    Ganancia de empuje  & $K_{uf}$ & Por estimar           & $\mathrm{N/\%}$        & Barrido PWM \\
+    Amortiguamiento     & $B$      & Por estimar           & $\mathrm{N\cdot s/m}$  & Decaimiento \\
+    \bottomrule
+  \end{tabularx}
+\end{table}
