@@ -36,24 +36,7 @@ la dinámica linealizada resultante adquiere la forma:
 \end{equation}
 
 \subsection{Representación del Modelo}
-A partir de la ecuación linealizada (\ref{eq:dinamica_linealizada}), se estructuran las representaciones empleadas para la síntesis y análisis del controlador:
-\begin{itemize}
-  \item \textbf{Función de transferencia incremental $G(s)$:}
+\textbf{Función de transferencia incremental $G(s)$:}
   \begin{equation}
     G(s) = \frac{\Delta \Theta(s)}{\Delta F(s)} = \frac{\dfrac{r}{I}}{s^2 + \dfrac{B r^2}{I} s - \dfrac{m g c \sin(\theta^*)}{I}}
   \end{equation}
-  \item \textbf{Representación en espacio de estados:}
-  Definiendo el vector de estados incremental $\Delta \mathbf{x}(t) = [\Delta \theta(t), \, \Delta \dot{\theta}(t)]^T$ y la entrada $\Delta u(t) = \Delta F(t)$:
-  \begin{equation}
-    \begin{bmatrix} \Delta \dot{\theta} \\ \Delta \ddot{\theta} \end{bmatrix}
-    =
-    \begin{bmatrix}
-      0 & 1 \\
-      \frac{m g c \sin\theta^*}{I} & -\frac{B r^2}{I}
-    \end{bmatrix}
-    \begin{bmatrix} \Delta \theta \\ \Delta \dot{\theta} \end{bmatrix}
-    +
-    \begin{bmatrix} 0 \\ \frac{r}{I} \end{bmatrix} \Delta F
-  \end{equation}
-  con ecuación de salida $\Delta y(t) = \begin{bmatrix} 1 & 0 \end{bmatrix} \Delta \mathbf{x}(t)$.
-\end{itemize}

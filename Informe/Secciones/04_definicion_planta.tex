@@ -3,7 +3,7 @@
 % ============================================================
 \section{Definición de la planta y Caracterización de Parámetros}
 
-Esta sección recopila la información metrológica verificada de la plataforma física y la metodología de caracterización experimental diseñada para determinar los parámetros estáticos y dinámicos de la planta.
+Esta sección recopila la metodología de caracterización experimental diseñada para determinar los parámetros estáticos y dinámicos de la planta.
 
 \subsection{Metodología de Obtención de Parámetros}
 
@@ -14,10 +14,12 @@ Corresponden a las propiedades geométricas y gravimétricas evaluadas de forma 
   \begin{equation}
     r = 0{,}1350\,\mathrm{m} \quad (135{,}0\,\mathrm{mm})
   \end{equation}
+  
   \item \textbf{Masa total del conjunto oscilante ($m$):} Registrada con balanza digital de precisión para el conjunto móvil completo (brazo de acrílico, micromotor DC, hélice, arnés de cables y sensor IMU montado):
   \begin{equation}
     m = 0{,}0300\,\mathrm{kg} \quad (30{,}0\,\mathrm{g})
   \end{equation}
+  
   \item \textbf{Aceleración de la gravedad ($g$):} Valor local estándar:
   \begin{equation}
     g = 9{,}81\,\mathrm{m/s^2}
@@ -27,13 +29,13 @@ Corresponden a las propiedades geométricas y gravimétricas evaluadas de forma 
 \subsubsection{Parámetros Indirectos y Metodología Experimental}
 \begin{enumerate}
   \item \textbf{Distancia al Centro de Masa ($c$):} 
-  Estimada a partir del modelo volumétrico computacional en \textit{Autodesk Fusion 360} integrando densidades y distribución de masas de cada componente:
+  Estimada a partir del modelo en \textit{Autodesk Fusion 360} aproximado:
   \begin{equation}
     c \approx 0{,}0407\,\mathrm{m} \quad (40{,}68\,\mathrm{mm})
   \end{equation}
 
   \item \textbf{Momento de Inercia respecto al Pivote ($I$):} 
-  Calculado inicialmente mediante el modelo CAD respecto al eje centroidal y trasladado por el teorema de ejes paralelos:
+  Calculado mediante el modelo CAD:
   \begin{equation}
     I \approx 7{,}94 \times 10^{-5}\,\mathrm{kg\cdot m^2}
   \end{equation}
@@ -46,7 +48,6 @@ Corresponden a las propiedades geométricas y gravimétricas evaluadas de forma 
   \textit{Protocolo experimental:} El firmware del ESP32 (\texttt{Variación\_PWM}) ejecuta un barrido escalonado (ascendente y descendente para evaluar histéresis) entre $10\%$ y $90\%$ de ciclo útil en pasos de $2\%$, sosteniendo $5\,\mathrm{s}$ por escalón para alcanzar estado estacionario. Mediante un script en MATLAB (\texttt{Gráfica\_\allowbreak y\_Lectura\_\allowbreak puerto.m}) se adquiere la posición angular media y se despeja el empuje por equilibrio estático, obteniendo $K_{uf}$ por regresión por mínimos cuadrados.
 
   \item \textbf{Coeficiente de Fricción Viscosa ($B$):} 
-  Modela la disipación energética combinada del rodamiento mecánico y la resistencia aerodinámica pasiva del brazo.
   
   \textit{Protocolo experimental:} El firmware (\texttt{Friccion}) posiciona inicialmente el péndulo con $75\%$ de PWM y apaga instantáneamente el motor a $0\%$ para capturar la oscilación libre subamortiguada con el encoder AS5600. El script \texttt{Envolvente.m} identifica los máximos locales y ajusta una envolvente exponencial $A_0 e^{-\sigma t}$, de donde se deduce el coeficiente $B$.
 \end{enumerate}

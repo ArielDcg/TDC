@@ -10,29 +10,31 @@ La plataforma física comprende una serie de subsistemas interconectados:
 
 \begin{enumerate}
   \item \textbf{Unidad de Cómputo y Control (ESP32):} 
-  Microcontrolador de 32 bits a $240\,\mathrm{MHz}$. Genera la señal de modulación por ancho de pulso (\textit{PWM}) para el control de potencia, gestiona la adquisición síncrona de datos por bus digital $\mathrm{I^2C}$ a $400\,\mathrm{kHz}$ (GPIO 21 para SDA y GPIO 22 para SCL) y ejecuta el lazo de control.
+  Genera la señal (\textit{PWM}) para el control de potencia, gestiona la adquisición de datos de los sensores por bus $\mathrm{I^2C}$ y ejecuta el lazo de control.
 
   \item \textbf{Etapa de Potencia y Actuador:} 
-  Módulo driver / puente H conectado a los pines de control del ESP32 (GPIO 25 y 26). Excita un micromotor DC con hélice bipala de tracción, convirtiendo el ciclo de trabajo de PWM en una fuerza de empuje aerodinámico $F(t)$ aplicada en el extremo libre del brazo.
+  Puente H conectado a un motor DC con hélice que genera la fuerza de empuje aerodinámico $F(t)$ aplicada en el extremo libre del brazo. 
 
   \item \textbf{Estructura Mecánica y Montaje de Pivote:} 
   \begin{itemize}
-    \item \textbf{Chasis y brazo en acrílico:} Fabricados mediante corte por láser (\texttt{LaserFinal.dxf}). Comprende la base horizontal de soporte, la torre vertical de fijación y el brazo oscilante alargado.
-    \item \textbf{Piezas en impresión 3D (PLA):} Fabricadas por manufactura aditiva FDM, incluyendo la brida soporte del pivote atornillada a la torre (\texttt{InsertoRoda.stl}), el soporte angular para el actuador (\texttt{Angulo.stl}) y los topes mecánicos.
-    \item \textbf{Inserto con rodamiento y eje de acero:} El alojamiento impreso contiene un rodamiento de bolas sobre el eje cilíndrico de acero, minimizando la fricción por rozamiento directo.
+    \item \textbf{Chasis y brazo en acrílico:} Fabricados mediante corte por láser. Comprende la base horizontal de soporte, la torre vertical de fijación y el brazo oscilante alargado.
+    
+    \item \textbf{Piezas en impresión 3D:} Incluye la brida soporte del pivote atornillada a la torre y el soporte angular para el actuador.
+    
+    \item \textbf{Inserto con rodamiento y eje de acero:} El alojamiento impreso contiene un rodamiento sobre el eje cilíndrico de acero, minimizando la fricción por rozamiento directo.
   \end{itemize}
 
   \item \textbf{Subsistema Sensorial Digital:} 
   \begin{itemize}
-    \item \textbf{Encoder magnético absoluto AS5600:} Resolución de 12 bits ($4096$ pasos por revolución, resolución nominal de $0{,}0879^\circ$), comunicado a través del protocolo digital $\mathrm{I^2C}$. Montado en la parte posterior del pivote, enfrentado coaxialmente a un imán diametral fijado mediante un portaimán impreso (\texttt{TaponIman.stl}).
-    \item \textbf{Unidad de Medición Inercial BMI160:} Sensor inercial montado directamente sobre el cuerpo del brazo de acrílico y conectado al bus $\mathrm{I^2C}$ (dirección $0\mathrm{x}68$), para el registro directo de la velocidad angular ($\dot{\theta} \equiv \mathrm{GyroZ}$).
+    \item \textbf{Encoder magnético absoluto AS5600:} Montado en la parte posterior del pivote, puesto coaxialmente a un imán diametral fijado mediante un portaimán impreso.
+    \item \textbf{Unidad de Medición Inercial BMI160:} En este avance del proyecto no presenta una funcionalidad
   \end{itemize}
 \end{enumerate}
 
 \subsection{Esquema Funcional de Lazo Cerrado}
 En la Fig.~\ref{fig:esquema_lazo_cerrado} se representa el diagrama de bloques del sistema en lazo cerrado, detallando las señales que fluyen entre cada subsistema.
 
-\begin{figure}[!t]
+\begin{figure}[h!]
   \centering
   \resizebox{\columnwidth}{!}{%
   \begin{tikzpicture}[
