@@ -39,17 +39,163 @@ Corresponden a las propiedades geométricas y gravimétricas evaluadas de forma 
   \begin{equation}
     I \approx 7{,}94 \times 10^{-5}\,\mathrm{kg\cdot m^2}
   \end{equation}
+  
+  El centro de masa y el momento de inercia calculados corresponden únicamente al brazo de acrílico del péndulo, debido a que se despreció la contribución de la masa del motor en el modelo dinámico. Esta simplificación se realizó considerando que la masa del motor (4 g) es inferior a la del brazo (20 g). Sin embargo, esta consideración introduce incertidumbre en los parámetros del modelo, lo que puede generar discrepancias entre el modelo matemático y el sistema físico.
+
+ \item \textbf{Coeficiente de Fricción Viscosa ($B$):} 
+
+ Con el propósito de estimar el coeficiente de fricción viscosa de la planta, se realizó experimento, en el cual se desplazó el péndulo desde una posición angular inicial y posteriormente se liberó, permitiendo que oscilara hasta alcanzar el reposo. A partir del registro de la posición angular en función del tiempo, se identificó la envolvente de las oscilaciones, cuya amplitud presenta un comportamiento aproximadamente exponencial decreciente.
+
+Para relacionar este comportamiento con el modelo matemático, se considera la ecuación diferencial del sistema en ausencia de una fuerza externa (\(F=0\)):
+
+\[
+I_0\ddot{\theta}+Br^2\dot{\theta}
++cgm\sin(\theta)=0
+\]
+
+Considerando pequeñas oscilaciones alrededor de la posición de equilibrio (\(\theta^*=0\)), se utiliza la aproximación \(\sin(\theta)\approx\theta\), obteniendo la siguiente ecuación diferencial linealizada:
+
+\[
+\boxed{
+I_0\ddot{\theta}+Br^2\dot{\theta}
++cgm\theta=0
+}
+\]
+
+Para encontrar su solución, se plantea la ecuación característica asociada:
+
+\[
+I_0s^2+Br^2s+cgm=0
+\]
+
+Cuyas raíces están dadas por:
+
+\[
+s_{1,2}=-\frac{Br^2}{2I_0}
+\pm j\sqrt{\frac{cgm}{I_0}
+-\left(\frac{Br^2}{2I_0}\right)^2}
+\]
+
+Para el caso subamortiguado, la respuesta temporal del sistema está dada por:
+
+\[
+\boxed{
+\theta(t)=e^{-\frac{Br^2}{2I_0}t}
+\left[
+C_1\cos(\omega_dt)+C_2\sin(\omega_dt)
+\right]
+}
+\]
+
+Donde \(C_1\) y \(C_2\) dependen de las condiciones iniciales, y la frecuencia angular amortiguada está definida por:
+
+\[
+\omega_d=
+\sqrt{\frac{cgm}{I_0}
+-\left(\frac{Br^2}{2I_0}\right)^2}
+\]
+
+De esta solución se identifica que la amplitud de las oscilaciones está limitada por una envolvente exponencial decreciente:
+
+\[
+\boxed{
+\theta_{\mathrm{env}}(t)=A_0e^{-\frac{Br^2}{2I_0}t}
+}
+\]
+
+A partir del ajuste exponencial de los datos experimentales, se obtiene una constante de decaimiento \(k\), mediante la expresión:
+
+\[
+\theta_{\mathrm{env}}(t)=A_0e^{-kt}
+\]
+
+Al comparar ambas expresiones, se establece la siguiente relación:
+
+\[
+k=\frac{Br^2}{2I_0}
+\]
+
+Por lo tanto, el coeficiente de fricción viscosa se estima inicialmente mediante:
+
+\[
+\boxed{
+B=\frac{2I_0k}{r^2}
+}
+\]
+
+Posteriormente, el valor estimado se contrastó mediante un modelo del sistema no lineal implementado en Simulink, utilizando el coeficiente de fricción calculado a partir de la expresión anterior. Inicialmente, se observaron diferencias entre la respuesta simulada y la respuesta experimental. Estas discrepancias se atribuyeron, entre otros factores, a la incertidumbre en la estimación del momento de inercia, debido a las simplificaciones realizadas durante el modelado físico de la planta.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Informe/Imagenes/simulinkpendulo.eps}
+    \caption{Modelo del sistema no lineal implementado en Simulink} 
+    \label{simulink}
+\end{figure}
+
+Por esta razón, se realizó un proceso iterativo de ajuste del momento de inercia, buscando obtener una mayor correspondencia entre las respuestas del modelo no lineal y del sistema físico. A partir del valor ajustado de este parámetro y de la constante de decaimiento identificada experimentalmente, se determinó el coeficiente de fricción viscosa de la planta, obteniendo un valor de:
+
+\[
+\boxed{
+B=\mathrm{N\,s/m}
+}
+\]
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Informe/Imagenes/Envolvente.eps}
+    \caption{Validación coeficiente de fricción Viscosa}
+    \label{fig:respuesta}
+\end{figure}
+
+En el ajuste final se observó una mayor correspondencia entre la respuesta experimental y la simulación para amplitudes angulares grandes, mientras que, a medida que disminuía la amplitud de las oscilaciones, se presentaban mayores discrepancias. Este comportamiento sugiere la presencia de fenómenos no lineales de fricción que no son contemplados en el modelo viscoso utilizado. Particularmente, podría estar relacionado con el efecto Stribeck, asociado a la transición entre la fricción estática y la fricción cinética a bajas velocidades. Este fenómeno adquiere mayor relevancia cuando disminuye la amplitud de las oscilaciones, ya que también se reducen las velocidades angulares alcanzadas por el péndulo. Por tanto, la fricción real de la planta podría no estar representada adecuadamente mediante un único coeficiente de amortiguamiento viscoso.
 
   \item \textbf{Ganancia del Actuador ($K_{uf}$):} 
-  Relaciona el ciclo de trabajo de PWM enviado al módulo de potencia con la fuerza de empuje aerodinámico efectiva:
-  \begin{equation}
-    F(t) = K_{uf} \cdot u_{\mathrm{PWM}}(t)
-  \end{equation}
-  \textit{Protocolo experimental:} El firmware del ESP32 (\texttt{Variación\_PWM}) ejecuta un barrido escalonado (ascendente y descendente para evaluar histéresis) entre $10\%$ y $90\%$ de ciclo útil en pasos de $2\%$, sosteniendo $5\,\mathrm{s}$ por escalón para alcanzar estado estacionario. Mediante un script en MATLAB (\texttt{Gráfica\_\allowbreak y\_Lectura\_\allowbreak puerto.m}) se adquiere la posición angular media y se despeja el empuje por equilibrio estático, obteniendo $K_{uf}$ por regresión por mínimos cuadrados.
 
-  \item \textbf{Coeficiente de Fricción Viscosa ($B$):} 
-  
-  \textit{Protocolo experimental:} El firmware (\texttt{Friccion}) posiciona inicialmente el péndulo con $75\%$ de PWM y apaga instantáneamente el motor a $0\%$ para capturar la oscilación libre subamortiguada con el encoder AS5600. El script \texttt{Envolvente.m} identifica los máximos locales y ajusta una envolvente exponencial $A_0 e^{-\sigma t}$, de donde se deduce el coeficiente $B$.
+Para determinar la relación entre el PWM aplicado al motor y la fuerza de empuje generada por la hélice, se realizó un ensayo experimental en el cual se aplicaron diferentes valores de PWM al actuador y se registró la posición angular alcanzada por el péndulo en cada caso, una vez estabilizada la respuesta.
+
+A partir de la condición de equilibrio estático del péndulo, se determinó la fuerza de empuje correspondiente a cada posición angular, utilizando el balance de momentos respecto al punto de giro:
+
+\[
+F^*r-mgc\sin(\theta^*)=0
+\]
+
+Despejando la fuerza de empuje:
+
+\[
+\boxed{
+F^*=\frac{mgc}{r}\sin(\theta^*)
+}
+\]
+
+De esta manera, fue posible transformar las mediciones experimentales de posición angular en valores de fuerza, construyendo una relación entre la señal PWM aplicada y la fuerza generada por la hélice. Los resultados obtenidos se presentan en la Figura \ref{fig:kuf}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Informe/Imagenes/GráficaKAUF.eps}
+    \caption{Fuerza generada por la hélice en función del PWM aplicado}
+    \label{fig:kuf}
+\end{figure}
+
+Posteriormente, se evaluaron dos aproximaciones para representar esta relación: un ajuste lineal y un ajuste mediante una suma de funciones exponenciales. Al comparar ambos modelos con los datos experimentales, se observó que la aproximación mediante exponenciales representaba de manera más adecuada el comportamiento de la planta, especialmente debido a la variación no lineal de la fuerza con respecto a la señal de entrada. Por esta razón, se seleccionó dicho ajuste para su incorporación en el modelo de simulación.
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Informe/Imagenes/simulinkpendulo.eps}
+    \caption{Modelo del sistema no lineal implementado en Simulink} 
+    \label{simulink}
+\end{figure}
+
+Finalmente, con el propósito de validar el modelo obtenido, se incorporó en Simulink la relación identificada entre la señal PWM y la fuerza de empuje, conectándola al modelo dinámico no lineal del péndulo. Se aplicó una señal de entrada PWM tanto al sistema físico como al modelo simulado, comparando las respuestas angulares obtenidas. Los resultados de esta validación se presentan en la Figura \ref{fig:pruebakuf}.
+
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.4\textwidth]{Informe/Imagenes/Gráfica_Prueba_Ascendente_Descendente.eps}
+    \caption{Validación coeficiente de fricción Viscosa}
+    \label{fig:pruebakuf}
+\end{figure}
+
+A partir de la comparación, se observó una correspondencia considerable entre ambas respuestas durante el incremento de la señal de entrada. Sin embargo, durante su disminución se presentaron algunas discrepancias en el valor final alcanzado. Estas diferencias pueden estar relacionadas con variaciones en la característica estática del conjunto motor–hélice, así como con fenómenos no considerados en el modelo, tales como zonas muertas, histéresis o variaciones en las condiciones de alimentación del actuador.
+
 \end{enumerate}
 
 La Tabla~\ref{tab:parametros_planta} resume los parámetros geométricos, másicos y dinámicos determinados para la plataforma física.
@@ -74,3 +220,4 @@ La Tabla~\ref{tab:parametros_planta} resume los parámetros geométricos, másic
     \bottomrule
   \end{tabularx}
 \end{table}
+
