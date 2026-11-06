@@ -4,7 +4,7 @@
 \section{Entendimiento de la planta y Modelado Matemático}
 
 \subsection{Ecuación Diferencial No Lineal}
-A partir del diagrama de cuerpo libre del aeropéndulo en rotación plana alrededor del eje fijo del rodamiento, la sumatoria de momentos satisface:
+A partir del diagrama de cuerpo libre del aeropéndulo en rotación plana alrededor del eje fijo del rodamiento, la sumatoria de momentos respecto al centro de rotación $O$ satisface:
 \begin{equation}
   \sum \tau_O = I \ddot{\theta}(t)
 \end{equation}
@@ -14,16 +14,16 @@ Considerando el torque generado por el empuje aerodinámico del motor $F(t) = K_
   I \ddot{\theta}(t) = r F(t) - B r^2 \dot{\theta}(t) - m g c \cos(\theta(t))
   \label{eq:dinamica_nolineal}
 \end{equation}
-donde $\theta(t)$ representa la posición angular, $I$ el momento de inercia respecto al pivote, $m$ la masa oscilante, $g$ la aceleración de la gravedad y $u(t)$ la se\~nal de mando.
+donde $\theta(t)$ representa la posición angular, $I$ el momento de inercia respecto al pivote, $m$ la masa oscilante, $g$ la aceleración de la gravedad y $u(t)$ la señal de mando de control.
 
 \subsection{Puntos de Equilibrio Estacionario}
-En régimen permanente estacionario ($\ddot{\theta}^* = 0$, $\dot{\theta}^* = 0$), la fuerza requerida para sostener un ángulo de operación $\theta^*$ satisface:
+En régimen permanente estacionario ($\ddot{\theta}^* = 0$, $\dot{\theta}^* = 0$), la fuerza requerida para sostener un ángulo de operación constante $\theta^*$ satisface:
 \begin{equation}
   F^* = \frac{m g c}{r} \cos(\theta^*)
 \end{equation}
 
 \subsection{Linealización Alrededor del Punto de Operación}
-Dado el comportamiento fuertemente no lineal del término trigonométrico, se plantea una linealización mediante aproximación por serie de Taylor alrededor de la condición de operación $(\theta^*, \dot{\theta}^* = 0, F^*)$.
+Dado el comportamiento no lineal del término gravitacional trigonométrico, se plantea una linealización mediante aproximación por serie de Taylor de primer orden alrededor del punto de operación $(\theta^*, \dot{\theta}^* = 0, F^*)$.
 
 Definiendo las variables de desviación incremental:
 \begin{equation}
@@ -36,12 +36,7 @@ la dinámica linealizada resultante adquiere la forma:
 \end{equation}
 
 \subsection{Representación del Modelo}
-A partir de la ecuación linealizada (\ref{eq:dinamica_linealizada}), se estructuran las vías de representación para la síntesis del controlador:
-\begin{itemize}[leftmargin=*]
-  \item \textbf{Función de transferencia incremental $G(s)$:}
+\textbf{Función de transferencia incremental $G(s)$:}
   \begin{equation}
     G(s) = \frac{\Delta \Theta(s)}{\Delta F(s)} = \frac{\dfrac{r}{I}}{s^2 + \dfrac{B r^2}{I} s - \dfrac{m g c \sin(\theta^*)}{I}}
   \end{equation}
-  \item \textbf{Representación en espacio de estados:}
-  Formulación matricial $\Delta \dot{\mathbf{x}} = \mathbf{A} \Delta \mathbf{x} + \mathbf{B} \Delta u$.
-\end{itemize}
