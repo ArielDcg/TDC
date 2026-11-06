@@ -31,7 +31,7 @@ kuf_0 = 9.2568e-04;
 % kuf_d = fit_exp.d;
 
 kuf_a = 0.0642;
-kuf_b = 0.0046;
+kuf_b = 0.0046; 
 kuf_c = -0.0647;
 kuf_d = -0.0187;
 
@@ -40,7 +40,11 @@ repeating_sequence = [0 2 4 6 8];
 step_interval = 10;   % [s] duracion de cada escalon
 
 s = tf('s');
+Kuf_exp = (kuf_a)/(s+kuf_b)+(kuf_c)/(s+kuf_d)
+
 G = kuf*(r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
+G_exp = Kuf_exp*(r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
+
 %bode(G)
 rlocus(G)
 kp = 94.008;
@@ -58,10 +62,11 @@ rlocus(s*G/(1+(ki/s)*G+kp*G))
 kd = 11.751;
 CPID = (kp+ki/s+s*kd);
 zpk(feedback(CPID*G,1))
-step(feedback(CPID*G,1))
+step(feedback(CPID*G,1));
 Sys = CPID*G;
 
-controlSystemDesigner(G)
+
+%controlSystemDesigner(G_exp)
 % %% Red combinada
 % %Red de adelanto
 % bode(Sys)
