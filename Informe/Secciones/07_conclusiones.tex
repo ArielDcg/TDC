@@ -4,5 +4,9 @@
 \section{Conclusiones}
 
 \begin{itemize}
-    \item 
+    \item La ganancia derivativa debe estar acompañada de un filtro para ser implementable, cambiando el valor de N cambia tanto el la magnitud del bode en alta frecuencia como la frecuencia a la que se estabiliza
+
+    \item Para una siguiente implementación es necesario tener en cuenta el antiwindup para que no siga acumulando el integrador en medio de la saturación, se probó la técnica más trivial pero se sacrificaba desempeño introduciendo un carácter oscilatorio.
+    
+    \item En conjunto, las pruebas experimentales permitieron estimar y ajustar los parámetros del modelo matemático, mejorando su correspondencia con el comportamiento dinámico de la planta real. Durante este proceso se identificaron discrepancias entre las respuestas simuladas y experimentales, asociadas principalmente a la incertidumbre en la determinación de algunos parámetros físicos y a la presencia de fenómenos dinámicos que no fueron contemplados en el modelo, como los efectos no lineales de fricción y las posibles variaciones en el comportamiento del actuador. En consecuencia, la validación experimental permitió ajustar las estimaciones iniciales y obtener una representación matemática más cercana al sistema físico. 
 \end{itemize}

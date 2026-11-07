@@ -6,13 +6,13 @@
 \subsection{Criterios y Especificaciones de Diseño}
 El diseño del lazo de control se fundamenta en la necesidad de gobernar y estabilizar la dinámica angular del aeropéndulo alrededor del punto de operación nominal escogido ($\theta^* = 50^\circ$), evaluando la planta a partir de su modelo incremental linealizado con ganancia $K_{uf}$ lineal:
 \begin{equation}
-G(s) = \frac{0{,}000125}{0{,}0001223\,s^2 + 0{,}0004483\,s + 0{,}006559}
+G(s) = \frac{0{,}000125}{0{,}0001223\,s^2 + 0{,}0004483\,s + 0{,}007694}
 \end{equation}
 Normalizando el polinomio característico, la función de transferencia adopta la forma estándar de segundo orden:
 \begin{equation}
-G(s) \approx \frac{1{,}0221}{s^2 + 3{,}6656\,s + 53{,}6304}
+G(s) \approx \frac{1{,}0221}{s^2 + 3{,}6656\,s + 62{,}91}
 \end{equation}
-De esta expresión se evidencia una planta altamente resonante y subamortiguada en lazo abierto, con una frecuencia natural no amortiguada de $\omega_n \approx 7{,}32\,\mathrm{rad/s}$ y un factor de amortiguamiento relativo sumamente bajo ($\zeta \approx 0.2503$). 
+De esta expresión se evidencia una planta altamente resonante y subamortiguada en lazo abierto, con una frecuencia natural no amortiguada de $\omega_n \approx 7{,}93\,\mathrm{rad/s}$ y un factor de amortiguamiento relativo sumamente bajo ($\zeta \approx 0.2503$). 
 
 Para garantizar un desempeño dinámico seguro y preciso en la plataforma física, se establecieron las siguientes especificaciones en lazo cerrado:
 \begin{itemize}
@@ -28,12 +28,12 @@ Como punto de partida preliminar, se diseñó un controlador PID ideal de la for
 \end{equation}
 Este controlador, obtenido mediante el Lugar Geométrico de las Raíces en \textit{Control System Designer}, exhibe un margen de fase elevado ($PM \approx 78^\circ$), lo que permitió llevar el brazo hasta $172^\circ$ en las primeras pruebas físicas, como se observa en la Figura \ref{fig:contIdeal}. Se implementó en el ESP32 con la salvedad de que, en el primer ciclo de muestreo, el término derivativo se forzaba a cero por no disponer aún de una muestra anterior, lo que constituía una aproximación aceptable dado el reducido periodo $T_s = 2\,\mathrm{ms}$.
 
-\begin{figure}[h!]
-    \centering
-    \includegraphics[width=0.75\linewidth]{Caracterizacion/Gráficas/Envolvente.eps}
-    \caption{Aeropéndulo con referencia de 172 grados con el controlador ideal}
-    \label{fig:contIdeal}
-\end{figure}
+%\begin{figure}[h!]
+%    \centering
+%    \includegraphics[width=0.75\linewidth]%{Informe/Imagenes/172Demo.png}
+%    \caption{Aeropéndulo con referencia de 172 grados con el %controlador ideal}
+%    \label{fig:contIdeal}
+%\end{figure}
 
 No obstante, el controlador PID ideal no es físicamente implementable: presenta ganancia infinita a altas frecuencias, generando picos de saturación en el actuador que activaban permanentemente la zona de \textit{anti-windup}. Por recomendación del profesor, se migró a una estructura \textbf{PID con filtro derivativo (PIDF)}, introduciendo un polo real $N$ que limita la ganancia de alta frecuencia. El problema inmediato fue que reducir $N$ para acotar el pico de la señal de control deterioraba el margen de fase, reproduciendo el compromiso descrito a continuación. La función de transferencia adopta la forma:
 \begin{equation}
