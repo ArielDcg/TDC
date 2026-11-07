@@ -15,7 +15,7 @@
 % c (ajuste de la oscilacion) y fit_exp (ajuste de Kuf) deben estar en el workspace.
 % Cierra el monitor serial de PlatformIO/Arduino antes de correr esto.
 
-clearvars -except c fit_exp
+clearvars -except c fit_exp fit_linear
 clc;
 
 assert(exist("c", "var") && exist("fit_exp", "var"), ...
@@ -26,9 +26,9 @@ I = 3.2*382.232e-7; % inercia brazo [kg*m^2]
 m = 30.00e-3; % masa  brazo [kg]
 g = 9.81; % gravedad [m/s^2]
 r = 135.0e-3; % radio al motor [m]
-lc = 34.67e-3; % al centro de masa [m]
+lc = 40.67e-3; % al centro de masa [m]
 %========Frición Viscosa =========== 
-B = -6*c.b*I/r^2;
+B = -c.b*I/r^2;
 
 %B = 0.0041; %Ajustado para seguir envolvente[Estático]
 %========Torque mínimo ==============
@@ -36,11 +36,11 @@ Tc = 2.7425e-05;
 mu_0 = 0.7; %Frición brazo-Eje experimental (ignorar)
 %==============Kuf Lineal===============
 
-% kuf = fit_linear(1);
-% kuf_0 = fit_linear(2);
+kuf = fit_linear(1);
+kuf_0 = fit_linear(2);
 
-kuf = 9.2568e-04;
-kuf_0 = 9.2568e-04;
+%kuf = 9.2568e-04;
+%kuf_0 = 9.2568e-04;
 
 %==============Exponencial A*exp(b) + C*exp(d)========
 
