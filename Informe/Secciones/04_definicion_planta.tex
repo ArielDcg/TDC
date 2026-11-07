@@ -132,17 +132,13 @@ Posteriormente, el valor estimado se contrastó mediante un modelo del sistema n
     \label{simulink}
 \end{figure}
 
-Por esta razón, se realizó un proceso iterativo de ajuste del momento de inercia, buscando obtener una mayor correspondencia entre las respuestas del modelo no lineal y del sistema físico. A partir del valor ajustado de este parámetro y de la constante de decaimiento identificada experimentalmente, se determinó el coeficiente de fricción viscosa de la planta, obteniendo un valor de:
-
+Por esta razón, se realizó un proceso iterativo de ajuste del momento de inercia, buscando obtener una mayor correspondencia entre las respuestas del modelo no lineal y del sistema físico. El valor de ajuste para el momento de inercia fue multiplicar el valor por 3.2 y con este se determinó el coeficiente de fricción viscosa de la planta, obteniendo un valor de:
+ 
 \[
 \boxed{
 B= 0,0041 \mathrm{N\,s/m}
 }
 \]
-
-
-
-
 
 \begin{figure}[ht]
     \centering
@@ -185,7 +181,7 @@ Posteriormente, se evaluaron dos aproximaciones para representar esta relación:
 
 \begin{figure}[h]
     \centering
-    \includegraphics[width=1\linewidth]{Informe/Imagenes/Simulink_Caracterizaccion.eps}
+    \includegraphics[width=0.9\linewidth]{Informe/Imagenes/Simulink_Caracterizaccion.eps}
     \caption{Modelo del sistema no lineal implementado en Simulink con la dinámica Kuf} 
     \label{Simulink_Caracterizaccion}
 \end{figure}
@@ -199,7 +195,8 @@ Finalmente, con el propósito de validar el modelo obtenido, se incorporó en Si
     \label{fig:pruebakuf}
 \end{figure}
 
-A partir de la comparación, se observó una correspondencia considerable entre ambas respuestas durante el incremento de la señal de entrada. Sin embargo, durante su disminución se presentaron algunas discrepancias en el valor final alcanzado. Estas diferencias pueden estar relacionadas con variaciones en la característica estática del conjunto motor–hélice, así como con fenómenos no considerados en el modelo, tales como zonas muertas, histéresis o variaciones en las condiciones de alimentación del actuador.
+A partir de la comparación, se observó una gran diferencia en el amortiguamiento de la simulación respecto a la realidad, por tanto se considero ajustar el valor de la fricción viscosa para obtener una respuesta mas similar a la realidad, esta se ajusto multiplicándola por 6, dicha diferencia se debe a que la fricción se caracterizo con el motor apagado y se evidencia que el comportam
+considerable entre ambas respuestas durante el incremento de la señal de entrada. Sin embargo, durante su disminución se presentaron algunas discrepancias en el valor final alcanzado. Estas diferencias pueden estar relacionadas con variaciones en la característica estática del conjunto motor–hélice, así como con fenómenos no considerados en el modelo, tales como zonas muertas, histéresis o variaciones en las condiciones de alimentación del actuador.
 
 \end{enumerate}
 
