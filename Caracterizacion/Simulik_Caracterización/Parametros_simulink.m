@@ -1,7 +1,11 @@
 %% Parametros del modelo (Simulink)
 
 r = 135.0e-3; % radio al motor [m]
+<<<<<<< HEAD
 lc = 34.67e-3 %40.67e-3; % al centro de masa [m]
+=======
+lc = 38.67e-3; % al centro de masa [m]
+>>>>>>> 9c6052c2ce66056faf8420b8f1ef943d90806439
 I = 3.2*382.232e-7; % inercia brazo [kg*m^2]
 m = 30.00e-3; % masa  brazo [kg]
 g = 9.81; % gravedad [m/s^2]
@@ -38,7 +42,7 @@ kuf_d = -0.0187;
 %==============Secuecia de entrada =================
 repeating_sequence = [0 2 4 6 8];
 step_interval = 10;   % [s] duracion de cada escalon
-
+%%
 s = tf('s');
 Kuf_exp = (kuf_a)/(s+kuf_b)+(kuf_c)/(s+kuf_d)
 
@@ -64,9 +68,14 @@ CPID = (kp+ki/s+s*kd);
 zpk(feedback(CPID*G,1))
 step(feedback(CPID*G,1));
 Sys = CPID*G;
+<<<<<<< HEAD
 G
 Gcl = feedback(CPID*G,1)
 %controlSystemDesigner(G_exp)
+=======
+%controlSystemDesigner(G)
+
+>>>>>>> 9c6052c2ce66056faf8420b8f1ef943d90806439
 % %% Red combinada
 % %Red de adelanto
 % bode(Sys)

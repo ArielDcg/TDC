@@ -4,7 +4,89 @@
 \section{Diseño del Controlador}
 
 \subsection{Criterios y Especificaciones de Diseño}
+El diseño del lazo de control se fundamenta en la necesidad de gobernar y estabilizar la dinámica angular del aeropéndulo alrededor del punto de operación nominal escogido ($\theta^* = 50^\circ$), evaluando la planta a partir de su modelo incremental linealizado con ganancia $K_{uf}$ lineal:
+\begin{equation}
+G(s) = \frac{0{,}000125}{0{,}0001223\,s^2 + 0{,}0004483\,s + 0{,}006559}
+\end{equation}
+Normalizando el polinomio característico, la función de transferencia adopta la forma estándar de segundo orden:
+\begin{equation}
+G(s) \approx \frac{1{,}0221}{s^2 + 3{,}6656\,s + 53{,}6304}
+\end{equation}
+De esta expresión se evidencia una planta altamente resonante y subamortiguada en lazo abierto, con una frecuencia natural no amortiguada de $\omega_n \approx 7{,}32\,\mathrm{rad/s}$ y un factor de amortiguamiento relativo sumamente bajo ($\zeta \approx 0.2503$). 
 
-\subsection{Propuesta de Estructura de Control}
+Para garantizar un desempeño dinámico seguro y preciso en la plataforma física, se establecieron las siguientes especificaciones en lazo cerrado:
+\begin{itemize}
+  \item \textbf{Tiempo de establecimiento ($T_s$):} Alcanzar y permanecer dentro de la banda de tolerancia del $2\%$ en un tiempo $T_s \le 3\,\mathrm{s}$.
+  \item \textbf{Esfuerzo de control máximo inicial ($u(0)$):} Ante entradas escalón de referencia, la acción de control inicial transitoria debe estar estrictamente acotada a una amplitud máxima de $400$ ($u(0^+) \le 400$). Esto evita la saturación violenta del actuador y la consiguiente acumulación perjudicial del integrador (zona de \textit{anti-windup}).
+  \item \textbf{Amortiguamiento y estabilidad relativa:} Lograr un Margen de Fase superior a $35^\circ$ (específicamente $PM \approx 39{,}5^\circ$) para amortiguar drásticamente la resonancia natural y asegurar una respuesta suave sin sobrepicos excesivos.
+\end{itemize}
+
+\subsection{Propuesta de Estructura de Control y Sintonización}
+Como punto de partida preliminar, se diseñó un controlador PID ideal de la forma:
+\begin{equation}
+  C_0(s) = K_p + \frac{K_i}{s} + K_d s = \frac{11{,}571\,(s+4)^2}{s}
+\end{equation}
+Este controlador, obtenido mediante el Lugar Geométrico de las Raíces en \textit{Control System Designer}, exhibe un margen de fase elevado ($PM \approx 78^\circ$), lo que permitió llevar el brazo hasta $172^\circ$ en las primeras pruebas físicas. Se implementó en el ESP32 con la salvedad de que, en el primer ciclo de muestreo, el término derivativo se forzaba a cero por no disponer aún de una muestra anterior, lo que constituía una aproximación aceptable dado el reducido periodo $T_s = 2\,\mathrm{ms}$.
+
+No obstante, el controlador PID ideal no es físicamente implementable: presenta ganancia infinita a altas frecuencias, generando picos de saturación en el actuador que activaban permanentemente la zona de \textit{anti-windup}. Por recomendación del profesor, se migró a una estructura \textbf{PID con filtro derivativo (PIDF)}, introduciendo un polo real $N$ que limita la ganancia de alta frecuencia. El problema inmediato fue que reducir $N$ para acotar el pico de la señal de control deterioraba el margen de fase, reproduciendo el compromiso descrito a continuación. La función de transferencia adopta la forma:
+\begin{equation}
+  C(s) = \frac{K(s + z_1)(s + z_2)}{s(s + N)}
+  \label{eq:PIDF_zeros}
+\end{equation}
+
+El diseño y ajuste de los parámetros se llevó a cabo en MATLAB mediante la herramienta \textit{Control System Designer}, combinando el Lugar Geométrico de las Raíces (LGR) y el moldeo de lazo en frecuencia (\textit{Loop Shaping}):
+
+\begin{enumerate}
+  \item \textbf{Compromiso en el ajuste del filtro derivativo ($N$):}
+  El polo real $N$ limita la ganancia de alta frecuencia del controlador a $\lim_{s \to \infty} C(s) = K$. Durante las iteraciones de sintonización se identificó que:
+  \begin{itemize}
+    \item Valores de $N$ elevados reducen el retraso de fase del filtro, pero incrementan inadmisiblemente el valor máximo de la señal de control $u(0)$, saturando el actuador.
+    \item Valores de $N$ pequeños reducen el esfuerzo de control inicial, pero introducen un atraso de fase en la banda de cruce que degrada severamente el margen de fase, tornando la respuesta transitoria altamente oscilatoria.
+  \end{itemize}
+  El mejor compromiso se obtuvo situando el polo en $N = 40\,\mathrm{rad/s}$ y fijando la ganancia estática en $K = 399{,}55$, garantizando un esfuerzo inicial $u(0^+) = 399{,}55 \le 400$.
+
+  \item \textbf{Estrategia de ceros separados ($z_1 = -3$, $z_2 = -6$):}
+  En lugar de concentrar el adelanto de fase en un único cero real doble, se distribuyeron los ceros en $z_1 = -3$ y $z_2 = -6$. Esta configuración ensancha el aporte de fase positiva sobre una banda frecuencial más amplia, recuperando el margen de fase consumido por el polo del filtro $N$ y el integrador en el origen.
+\end{enumerate}
+
+La función de transferencia final del compensador diseñado es:
+\begin{equation}
+  C(s) = \frac{399{,}55\,(s + 6)(s + 3)}{s(s + 40)}
+  \label{eq:controlador_disenado}
+\end{equation}
+Al evaluar la función de lazo abierto $L(s) = C(s)G(s)$, se obtiene una frecuencia de cruce de ganancia $\omega_{gc} = 14{,}78\,\mathrm{rad/s}$ y un Margen de Fase exacto de $PM = 39{,}47^\circ$ ($\approx 39{,}5^\circ$), cumpliendo con la supresión de resonancia y asegurando un tiempo de establecimiento simulado inferior a $3\,\mathrm{s}$.
+
+La conversión a la forma paralela estándar con filtro derivativo:
+\begin{equation}
+  C(s) = K_p + \frac{K_i}{s} + \frac{K_d N s}{s + N}
+\end{equation}
+arroja las ganancias equivalentes de sintonización:
+\begin{equation}
+  K_p \approx 85{,}40, \quad K_i \approx 179{,}80, \quad K_d \approx 7{,}85, \quad N = 40
+\end{equation}
 
 \subsection{Implementación Computacional}
+La ley de control se programó en el microcontrolador ESP32 ejecutando un lazo periódico con un periodo de muestreo discreto de $T_s = 2\,\mathrm{ms}$ ($500\,\mathrm{Hz}$):
+
+\begin{enumerate}
+  \item \textbf{Adquisición de la señal de error:} Se realiza mediante la lectura del encoder magnético AS5600 a través del bus $\mathrm{I^2C}$ a 12 bits, aplicando la corrección de desfase del cero mecánico para obtener $\theta[k]$ y calcular $e[k] = \theta_{\mathrm{ref}}[k] - \theta[k]$.
+
+  \item \textbf{Discretización de las acciones de control:}
+  La componente integral se actualiza mediante integración rectangular:
+  \begin{equation}
+    I[k] = I[k-1] + K_i\,e[k]\,T_s
+  \end{equation}
+  La componente derivativa con filtro de primer orden se discretizó mediante la aproximación en diferencias hacia atrás (\textit{Backward Euler}):
+  \begin{equation}
+    D[k] = \frac{1}{1 + N T_s}\,D[k-1] + \frac{K_d N}{1 + N T_s}\,(e[k] - e[k-1])
+  \end{equation}
+  la cual coincide con la rutina implementada en el firmware:
+  \begin{lstlisting}[language=C++]
+Derivada = (Kd*N/(1 + N*Ts))*(error - lastError) 
+         + (1.0/(1 + N*Ts))*last_Derivada;
+last_Derivada = Derivada;
+  \end{lstlisting}
+
+  \item \textbf{Lógica de saturación y modulación PWM:}
+  La acción de control combinada $u[k] = K_p e[k] + I[k] + D[k]$ se acota dentro del rango operativo real del actuador $[0, 100]\%$. Finalmente, el porcentaje de ciclo útil se transforma en un registro de 8 bits ($0\text{--}255$) aplicado mediante PWM a $20\,\mathrm{kHz}$ a través de los pines de control del puente H (GPIO 25 y 26), eliminando cualquier silbido acústico y suavizando la corriente de armadura del micromotor.
+\end{enumerate}
