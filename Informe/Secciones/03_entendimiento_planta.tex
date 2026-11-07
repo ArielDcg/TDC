@@ -9,9 +9,16 @@ A partir del diagrama de cuerpo libre del aeropéndulo en rotación plana alrede
   \sum \tau_O = I \ddot{\theta}(t)
 \end{equation}
 
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Informe/Imagenes/dcl.eps}
+    \caption{Diagrama de cuerpo libre del aeropéndulo} 
+    \label{dcl}
+\end{figure}
+
 Considerando el torque generado por el empuje aerodinámico del motor $F(t) = K_{uf} u(t)$ a distancia radial $r$, el momento causado por la fuerza gravitacional con centro de masa a distancia $c$ y el amortiguamiento viscoso equivalente $B r^2$:
 \begin{equation}
-  I \ddot{\theta}(t) = r F(t) - B r^2 \dot{\theta}(t) - m g c \cos(\theta(t))
+  I \ddot{\theta}(t) = r F(t) - B r^2 \dot{\theta}(t) - m g c \sin(\theta(t))
   \label{eq:dinamica_nolineal}
 \end{equation}
 donde $\theta(t)$ representa la posición angular, $I$ el momento de inercia respecto al pivote, $m$ la masa oscilante, $g$ la aceleración de la gravedad y $u(t)$ la señal de mando de control.
@@ -19,7 +26,7 @@ donde $\theta(t)$ representa la posición angular, $I$ el momento de inercia res
 \subsection{Puntos de Equilibrio Estacionario}
 En régimen permanente estacionario ($\ddot{\theta}^* = 0$, $\dot{\theta}^* = 0$), la fuerza requerida para sostener un ángulo de operación constante $\theta^*$ satisface:
 \begin{equation}
-  F^* = \frac{m g c}{r} \cos(\theta^*)
+  F^* = \frac{m g c}{r} \sin(\theta^*)
 \end{equation}
 
 \subsection{Linealización Alrededor del Punto de Operación}
@@ -31,12 +38,20 @@ Definiendo las variables de desviación incremental:
 \end{equation}
 la dinámica linealizada resultante adquiere la forma:
 \begin{equation}
-  I \Delta \ddot{\theta}(t) + B r^2 \Delta \dot{\theta}(t) - m g c \sin(\theta^*) \Delta \theta(t) = r \Delta F(t)
+  I \Delta \ddot{\theta}(t) + B r^2 \Delta \dot{\theta}(t) + m g c \cos(\theta^*) \Delta \theta(t) = r \Delta F(t)
   \label{eq:dinamica_linealizada}
 \end{equation}
 
 \subsection{Representación del Modelo}
 \textbf{Función de transferencia incremental $G(s)$:}
   \begin{equation}
-    G(s) = \frac{\Delta \Theta(s)}{\Delta F(s)} = \frac{\dfrac{r}{I}}{s^2 + \dfrac{B r^2}{I} s - \dfrac{m g c \sin(\theta^*)}{I}}
+    G(s) = \frac{\Delta \Theta(s)}{\Delta F(s)} = \frac{\dfrac{r}{I}}{s^2 + \dfrac{B r^2}{I} s + \dfrac{m g c \cos(\theta^*)}{I}}
   \end{equation}
+
+y realizando un análisis de estabilidad de Routh-Hurwitz, se conoce analíticamente el punto donde se vuelve inestable:
+
+\[
+\frac{cgm\cos\theta^*}{I} > 0
+\;\longrightarrow\;
+\theta^* < 90^\circ
+\]
