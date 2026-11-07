@@ -13,9 +13,13 @@
 //double Kp = 260.82;
 //double Kd = 118.19;
 
-double Kp = 94.008;
-double Ki = 188.016;
-double Kd = 11.751;
+//double Ki = 188.016;
+//double Kp = 94.008;
+//double Kd = 11.751;
+
+double Kp = 85.4038;
+double Ki = 179.7975;
+double Kd = 7.8537;
 
 //MUY LENTO
 //double Kp = 12.5952;
@@ -35,7 +39,7 @@ double u = 0;
 double last_Samble_time = 0;
 double last_Samble_time_Ramp = 0;
 double reference = 130*ANG_TO_DEG;  // 70  grados, en radianes
-double N = 1000;
+double N = 40.0;
 double last_Derivada = 0;
 double sat_time;
 
@@ -81,8 +85,8 @@ void stopMotor() {
   analogWrite(IN1, 0);
   analogWrite(IN2, 0);
 }
-double derivativo(double error, double lastError, double Ts, double N, double Kd, double last_Derivada) {
-  Derivada = Kd * N / (1 + N * Ts) * (error - lastError) + (1 ) / (1 + N * Ts) * last_Derivada;
+double derivativo(double error, double lastError, double Ts, double N, double Kd, double &last_Derivada) {
+  Derivada = (Kd * N / (1.0 + N * Ts)) * (error - lastError) + (1.0 / (1.0 + N * Ts)) * last_Derivada;
   last_Derivada = Derivada;
   return Derivada;
 }
@@ -114,8 +118,8 @@ void loop() {
 
     Integral += Ki * error * (Ts / 1000.0);
 
-    //Derivada = derivativo(error, lastError, Ts, N, Kd, last_Derivada);
-    Derivada = Kd*(error - lastError) / (Ts / 1000.0);
+    Derivada = derivativo(error, lastError, Ts / 1000.0, N, Kd, last_Derivada);
+    //Derivada = Kd*(error - lastError) / (Ts / 1000.0);
 
     Proporcional = Kp * error;
     lastu = u;
