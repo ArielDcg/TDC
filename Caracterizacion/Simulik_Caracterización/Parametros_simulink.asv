@@ -9,8 +9,8 @@ ThetaLin = deg2rad(50);
 %========Frición Viscosa =========== 
 %B = -c.b*I/r^2;
 
-B = 0.0041; %Ajustado para seguir envolvente[Estático]
-%B = 0.0495; %Ajustado para mejor respuesta dinámica
+% B = 0.0041; %Ajustado para seguir envolvente[Estático]
+ B = 6*0.0041; %Ajustado para mejor respuesta dinámica
 
 %========Torque mínimo ==============[Experimentos]
 Tc = 2.7425e-05;
@@ -38,7 +38,7 @@ kuf_d = -0.0187;
 %==============Secuecia de entrada =================
 repeating_sequence = [0 2 4 6 8];
 step_interval = 10;   % [s] duracion de cada escalon
-
+%%
 s = tf('s');
 Kuf_exp = (kuf_a)/(s+kuf_b)+(kuf_c)/(s+kuf_d)
 
@@ -47,26 +47,29 @@ G_exp = Kuf_exp*(r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
 
 %bode(G)
 rlocus(G)
-kp = 85%94.008;
+kp = 94.008;
 
 % Ganancia integral
 rlocus(-G/(s*(-1-kp*G)))
 % hold on
 
-ki = 4%188.016;
+ki = 188.016;
 CPI = (kp+ki/s);
 zpk(feedback(CPI*G,1))
 step(feedback(CPI*G,1))
 
 rlocus(s*G/(1+(ki/s)*G+kp*G))
 kd = 11.751;
-CPID = (kp+ki/s+s*kd);
+CPID = (kp+ki/s+N*s*kd/(s));
 zpk(feedback(CPID*G,1))
-step(feedback(CPID*G_exp,1))
+step(feedback(CPID*G,1));
 Sys = CPID*G;
 
-
+G
+Gcl = feedback(CPID*G,1)
 %controlSystemDesigner(G_exp)
+%controlSystemDesigner(G)
+
 % %% Red combinada
 % %Red de adelanto
 % bode(Sys)
