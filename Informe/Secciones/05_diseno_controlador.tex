@@ -22,9 +22,13 @@ Para garantizar un desempeño dinámico seguro y preciso en la plataforma físic
 \end{itemize}
 
 \subsection{Propuesta de Estructura de Control y Sintonización}
-Se descartó la implementación de un controlador PID ideal tradicional debido a su ganancia infinita a altas frecuencias, la cual genera un pico transitorio irrealizable en el actuador físico (\textit{derivative kick}) y amplifica severamente el ruido del sensor.
+Como punto de partida preliminar, se diseñó un controlador PID ideal de la forma:
+\begin{equation}
+  C_0(s) = K_p + \frac{K_i}{s} + K_d s = \frac{11{,}571\,(s+4)^2}{s}
+\end{equation}
+Este controlador, obtenido mediante el Lugar Geométrico de las Raíces en \textit{Control System Designer}, exhibe un margen de fase elevado ($PM \approx 78^\circ$), lo que permitió llevar el brazo hasta $172^\circ$ en las primeras pruebas físicas. Se implementó en el ESP32 con la salvedad de que, en el primer ciclo de muestreo, el término derivativo se forzaba a cero por no disponer aún de una muestra anterior, lo que constituía una aproximación aceptable dado el reducido periodo $T_s = 2\,\mathrm{ms}$.
 
-En su lugar, se adoptó una estructura \textbf{PID con filtro derivativo (PIDF)}, cuya representación en polos y ceros se define como:
+No obstante, el controlador PID ideal no es físicamente implementable: presenta ganancia infinita a altas frecuencias, generando picos de saturación en el actuador que activaban permanentemente la zona de \textit{anti-windup}. Por recomendación del profesor, se migró a una estructura \textbf{PID con filtro derivativo (PIDF)}, introduciendo un polo real $N$ que limita la ganancia de alta frecuencia. El problema inmediato fue que reducir $N$ para acotar el pico de la señal de control deterioraba el margen de fase, reproduciendo el compromiso descrito a continuación. La función de transferencia adopta la forma:
 \begin{equation}
   C(s) = \frac{K(s + z_1)(s + z_2)}{s(s + N)}
   \label{eq:PIDF_zeros}
