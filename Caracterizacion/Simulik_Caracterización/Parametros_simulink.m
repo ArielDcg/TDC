@@ -58,11 +58,11 @@ CPI = (kp+ki/s);
 zpk(feedback(CPI*G,1))
 step(feedback(CPI*G,1))
 rlocus(s*G/(1+(ki/s)*G+kp*G))
-N = 40
+N = 100
 kd = 11.751;
 CPID = (kp+ki/s+N*kd/(1+N/s));
 bode(CPID)
-% hold on
+hold on
 zpk(feedback(CPID*G,1))
 step(feedback(CPID*G,1));
 Sys = CPID*G;
