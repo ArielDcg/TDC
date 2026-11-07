@@ -26,7 +26,7 @@ I = 3.2*382.232e-7; % inercia brazo [kg*m^2]
 m = 30.00e-3; % masa  brazo [kg]
 g = 9.81; % gravedad [m/s^2]
 r = 135.0e-3; % radio al motor [m]
-lc = 40.67e-3; % al centro de masa [m]
+lc = 34.67e-3; % al centro de masa [m]
 %========Frición Viscosa =========== 
 B = -6*c.b*I/r^2;
 
