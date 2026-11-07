@@ -6,14 +6,13 @@
 \subsection{Criterios y Especificaciones de Diseño}
 El diseño del lazo de control se fundamenta en la necesidad de gobernar y estabilizar la dinámica angular del aeropéndulo alrededor del punto de operación nominal escogido ($\theta^* = 50^\circ$), evaluando la planta a partir de su modelo incremental linealizado con ganancia $K_{uf}$ lineal:
 \begin{equation}
-  G(s) = \frac{0{,}000125}{0{,}0001223\,s^2 + 7{,}472\cdot 10^{-5}\,s + 0{,}007694}
-  \label{eq:G_diseno}
+G(s) = \frac{0{,}000125}{0{,}0001223\,s^2 + 0{,}0004483\,s + 0{,}006559}
 \end{equation}
 Normalizando el polinomio característico, la función de transferencia adopta la forma estándar de segundo orden:
 \begin{equation}
-  G(s) \approx \frac{1{,}022}{s^2 + 0{,}6109\,s + 62{,}91}
+G(s) \approx \frac{1{,}0221}{s^2 + 3{,}6656\,s + 53{,}6304}
 \end{equation}
-De esta expresión se evidencia una planta altamente resonante y subamortiguada en lazo abierto, con una frecuencia natural no amortiguada de $\omega_n \approx 7{,}93\,\mathrm{rad/s}$ ($\approx 8\,\mathrm{rad/s}$) y un factor de amortiguamiento relativo sumamente bajo ($\zeta \approx 0{,}038$). 
+De esta expresión se evidencia una planta altamente resonante y subamortiguada en lazo abierto, con una frecuencia natural no amortiguada de $\omega_n \approx 7{,}32\,\mathrm{rad/s}$ y un factor de amortiguamiento relativo sumamente bajo ($\zeta \approx 0.2503$). 
 
 Para garantizar un desempeño dinámico seguro y preciso en la plataforma física, se establecieron las siguientes especificaciones en lazo cerrado:
 \begin{itemize}
