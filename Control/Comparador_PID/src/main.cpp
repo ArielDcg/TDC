@@ -20,9 +20,13 @@
 #include <DFRobot_BMI160.h>
 #include "AS5600.h"
 
-double Kp = 94.008;
-double Ki = 188.016;
-double Kd = 11.751;
+//double Kp = 94.008;
+//double Ki = 188.016;
+//double Kd = 11.751;
+
+double Kp = 85.4038;
+double Ki = 179.7975;
+double Kd = 7.8537;
 
 
 const double ANG_TO_DEG =  3.14159/180.0;
@@ -65,7 +69,7 @@ const float c4 = 1-2*a/Ts;
 
 AS5600 as5600;
 
-const float  ANGLE_OFFSET  = (173.16 + 9.65)*ANG_TO_DEG;  // 173.16 + 9.65 grados, en radianes
+const float  ANGLE_OFFSET  = (182.37)*ANG_TO_DEG;  // 173.16 + 9.65 grados, en radianes
 
 
 DFRobot_BMI160 bmi160;
@@ -73,7 +77,7 @@ const int8_t BMI160_ADDR  = 0x68;
 
 
 // ---- Parametros ----
-const unsigned long SAMPLE_MS = 20;     // ms entre filas enviadas (50 Hz)
+const unsigned long SAMPLE_MS = 30;     // ms entre filas enviadas (50 Hz)
 const int           MAX_LEVELS = 200;   // maximo de niveles en la secuencia
 const unsigned int  MAX_LINE   = 4096;  // maximo de caracteres de la linea SEQ
 const unsigned long MIN_STEP_MS = 100;  // tiempo minimo por escalon
@@ -93,18 +97,19 @@ void setMotorPWM(int pwmValue) {
   analogWrite(IN1, pwmValue);
   analogWrite(IN2, 0);
 }
-float readAngle() {
-  return as5600.rawAngle()*AS5600_RAW_TO_RADIANS - ANGLE_OFFSET;
-}
 
 void stopMotor() {
   analogWrite(IN1, 0);
   analogWrite(IN2, 0);
 }
 float readAngle() {
-  return as5600.rawAngle() * AS5600_RAW_TO_DEGREES - ANGLE_OFFSET;
+  return as5600.rawAngle() * AS5600_RAW_TO_RADIANS - ANGLE_OFFSET;
 }
-
+double derivativo(double error, double lastError, double Ts, double N, double Kd, double &last_Derivada) {
+  Derivada = (Kd * N / (1.0 + N * Ts)) * (error - lastError) + (1.0 / (1.0 + N * Ts)) * last_Derivada;
+  last_Derivada = Derivada;
+  return Derivada;
+}
 
 // =============================================================
 //  Interpreta "SEQ,<step_ms>,<n>,<p1>,...,<pn>"
@@ -200,7 +205,6 @@ void runSequence() {
     // Muestreo periodico
     if (elapsed >= nextSample) {
       nextSample += SAMPLE_MS;
-
       int16_t gyro[3] = {0, 0, 0};
       bool gyroOk = (bmi160.getGyroData(gyro) == BMI160_OK);
 
@@ -210,7 +214,34 @@ void runSequence() {
       } else {
         Serial.println("NaN");
       }
+      //Serial.printf("%d,%lu,%.3f,", seq[currentLevel], elapsed, readAngle());
     }
+    if (millis() - last_Samble_time >= Ts) {
+      angle = readAngle();
+      error = reference - angle; 
+
+      Integral += Ki * error * (Ts / 1000.0);
+
+      //Derivada = derivativo(error, lastError, Ts, N, Kd, last_Derivada);
+      Derivada = derivativo(error, lastError, Ts / 1000.0, N, Kd, last_Derivada);
+
+      Proporcional = Kp * error;
+      lastu = u;
+      u = Proporcional + Integral + Derivada;
+      
+      //RED = (u*c1+lastu*c2-lastRED*c4)/c3;
+      //lastRED = RED;
+      //if (RED > 100) RED = 100;
+      //if (RED < 0) RED = 0;
+
+      if (u > 100) u = 100;
+      if (u < 0) u = 0;
+      lastError = error;
+      last_Samble_time = millis();
+      //Serial.printf("Referencia: %.2f, Angulo: %.2f, Error: %.2f, Control: %.2f\n",  reference/ANG_TO_DEG, angle/ANG_TO_DEG, error, u);
+      setMotorPWM(percentToPWM(u));
+  }
+
   }
 
   stopMotor();
@@ -289,41 +320,5 @@ void loop() {
       Serial.println("ERROR,linea demasiado larga");
     }
   }
-  if (millis() - last_Samble_time >= Ts) {
-    angle = readAngle();
-    error = reference - angle; 
-
-    Integral += Ki * error * (Ts / 1000.0);
-
-    //Derivada = derivativo(error, lastError, Ts, N, Kd, last_Derivada);
-    Derivada = Kd*(error - lastError) / (Ts / 1000.0);
-
-    Proporcional = Kp * error;
-    lastu = u;
-    u = Proporcional + Integral + Derivada;
-    
-    //RED = (u*c1+lastu*c2-lastRED*c4)/c3;
-    //lastRED = RED;
-    //if (RED > 100) RED = 100;
-    //if (RED < 0) RED = 0;
-
-    if (u > 100) u = 100;
-    if (u < 0) u = 0;
-    lastError = error;
-    last_Samble_time = millis();
-    Serial.printf("Referencia: %.2f, Angulo: %.2f, Error: %.2f, Control: %.2f\n",  reference/ANG_TO_DEG, angle/ANG_TO_DEG, error, u);
-    setMotorPWM(percentToPWM(u));
-  }
-
-  if(millis() - last_Samble_time_Ramp >= 4000) {
-      last_Samble_time_Ramp = millis();
-      
-      if (reference > 172*ANG_TO_DEG) {
-        
-      }
-      else{
-        reference += 4*ANG_TO_DEG;
-      }
-  }
-
+  
 }

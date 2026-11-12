@@ -56,6 +56,9 @@ kuf_b = 0.0046;
 kuf_c = -0.0647;
 kuf_d = -0.0187;
 
+kp = 94.008;
+ki = 188.016;
+kd = 11.751;
 %==============Secuecia de entrada =================
 repeating_sequence = [0 10 20 30 40 50 60 70 80 70 60 50 40 30 20 10];
 step_interval = 10;   % [s] duracion de cada escalon
@@ -70,7 +73,7 @@ step_interval = 10;   % [s] duracion de cada escalon
 %========================================================================
 
 %% Configuracion
-modelo        = "PruebasKUF_2023b";   % <-- nombre del .slx (sin extension)
+modelo        = "SimuNolineal";   % <-- nombre del .slx (sin extension)
 simEnRadianes = false;                  % true si out.simout trae el angulo en rad
 puerto        = "/dev/ttyUSB0"; %cambien el puerto si lo prueban en windows
 baudios       = 115200; 
