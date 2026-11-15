@@ -21,8 +21,8 @@ Bm = [-138.1; 1584.2; 0; 1361.6];
 eig(A)
 eig(Am)
 
-Cm = [1 1 1 1];
-Dm = 0;
+Cm = eye(4,4);
+Dm = zeros(4,1);
 RefMod=ss(Am,Bm,Cm,Dm)
 
 Q = eye(4);
