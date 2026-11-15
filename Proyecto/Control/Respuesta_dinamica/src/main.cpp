@@ -31,7 +31,7 @@
 DFRobot_BMI160 bmi160;
 AS5600 as5600;
 const int8_t BMI160_ADDR  = 0x68;
-const float  ANGLE_OFFSET = 181.230;
+const float  ANGLE_OFFSET = 184.131;
 
 // ---- Parametros ----
 const unsigned long SAMPLE_MS = 20;     // ms entre filas enviadas (50 Hz)
