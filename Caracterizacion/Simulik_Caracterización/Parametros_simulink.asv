@@ -42,7 +42,7 @@ step_interval = 10;   % [s] duracion de cada escalon
 s = tf('s');
 Kuf_exp = (kuf_a)/(s+kuf_b)+(kuf_c)/(s+kuf_d)
 
-G = kuf*(r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
+G = kuf*(r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I)
 G_exp = Kuf_exp*(r/I)/(s^2+s*(B*r^2)/I+(lc*g*m*cos(ThetaLin))/I);
 
 %bode(G)
@@ -62,13 +62,17 @@ N = 100
 kd = 11.751;
 CPID = (kp+ki/s+N*kd/(1+N/s));
 bode(CPID)
-hold on
+% hold on
 zpk(feedback(CPID*G,1))
 step(feedback(CPID*G,1));
 Sys = CPID*G;
 
 G
 Gcl = feedback(CPID*G,1)
+
+[NumG, DenG] = tfdata(G, 'v');
+GStates = tf2ss(NumG,DenG)
+B = 
 %controlSystemDesigner(G_exp)
 %controlSystemDesigner(G)
 
