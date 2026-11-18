@@ -82,7 +82,7 @@ Gdob=[G;G*s]
 GStates = tf2ss(NumG,DenG)
 
 M1T = 1.5;
-A1T = 0.1;
+A1T = 0.05;
 Wb1T = 15;
 
 
@@ -90,7 +90,7 @@ W1T = tf([1/M1T Wb1T],[1 A1T*Wb1T]);
 
 W1 = [W1T,0;0,0];
 %---
-W2 = 5*tf(1,1);
+W2 = 0.05*tf(1,1);
 %---
 
 M3T = 0.02;
@@ -99,7 +99,7 @@ Wb3T = 2*pi*100;
 
 W3T = tf([1/M3T Wb3T],[1 A3T*Wb3T]);
 
-W3 = [tf(1e-5),0;0,W3T];
+W3 = [W3T, 0; 0, tf(1e-5)];
 
 augmented = augw(Gdob,W1,W2,W3)
 ncont = 1;
@@ -110,15 +110,21 @@ K = tf(K1);
 % 
 % T = L/(1+L);
 % S = 1/(1+L);
-Sth = minreal(sys_CL(2,2)/W1T);   % r_θ -> e_θ   (sensibilidad)
-KSr = minreal(sys_CL(3,2)/W2);    % r_θ -> u     (esfuerzo de control)
-Tth = minreal(sys_CL(5,2)/W3T);   % r_θ -> θ     (sensibilidad complementaria)
-
+Sth = minreal(sys_CL(1,1)/W1T);   % referencia theta -> error theta
+KSr = minreal(sys_CL(3,1)/W2);    % referencia theta -> control
+Tth = minreal(sys_CL(4,1)/W3T);
+% step(Tth)
+% dcgain(Tth)
 figure(1)
 subplot(2,2,1), sigma(Sth, 1/W1T), grid on, title('S_\theta vs 1/W_1')
 subplot(2,2,2), sigma(KSr, 1/W2),  grid on, title('KS vs 1/W_2')
 subplot(2,2,3), sigma(Tth, 1/W3T), grid on, title('T_\theta vs 1/W_3')
 subplot(2,2,4), step(Tth),         grid on, title('Escalón \theta')
+L = minreal(K1*Gdob);   % (1x2)*(2x1) = transferencia escalar
+
+figure
+margin(L)
+grid on
 % Para simulink:
 % [NumKH, DenKH] = tfdata(K, 'v') ;
 % [NumG6, DenG6] = tfdata(Gdob(2), 'v');
