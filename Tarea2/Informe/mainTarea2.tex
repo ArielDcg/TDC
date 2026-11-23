@@ -1,71 +1,57 @@
-\documentclass[11pt,letterpaper]{article}
-\usepackage[spanish,es-nodecimaldot]{babel}
+\documentclass[conference,letterpaper]{IEEEtran}
+\usepackage[spanish,es-nodecimaldot,es-noshorthands,es-tabla]{babel}
 \usepackage[utf8]{inputenc}
 \usepackage[T1]{fontenc}
-\usepackage{lmodern}
-\usepackage{geometry}
-\geometry{left=2.5cm,right=2.5cm,top=2.4cm,bottom=2.4cm}
-\usepackage{amsmath,amssymb,mathtools,bm}
-\usepackage{booktabs,array,tabularx,multirow}
-\usepackage{graphicx,float,caption}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs,tabularx}
+\usepackage{graphicx}
 \usepackage{microtype}
-\usepackage{siunitx}
 \usepackage{xcolor}
 \usepackage{hyperref}
-\usepackage{fancyhdr}
 \usepackage{enumitem}
 \usepackage{listings}
-\usepackage{tikz}
-\usetikzlibrary{arrows.meta,positioning}
 \hypersetup{colorlinks=true,linkcolor=blue!55!black,urlcolor=blue!55!black,citecolor=blue!55!black}
-\sisetup{output-decimal-marker={,},group-separator={\,}}
-\setlength{\parindent}{0pt}
-\setlength{\parskip}{0.45em}
-\pagestyle{fancy}
-\setlength{\headheight}{14pt}
-\fancyhf{}
-\lhead{Control adaptativo MRAC}
-\rhead{JAXA Mu-pal}
-\cfoot{\thepage}
-\renewcommand{\headrulewidth}{0.3pt}
 \newcommand{\norm}[1]{\left\lVert #1\right\rVert}
 \newcommand{\figuraopcional}[3]{%
-\begin{figure}[htbp]
+\begin{figure}[!htbp]
     \centering
-    \IfFileExists{#1}{\includegraphics[width=0.92\textwidth]{#1}}{%
-        \fbox{\begin{minipage}[c][3.6cm][c]{0.86\textwidth}\centering
+    \IfFileExists{#1}{\includegraphics[width=\linewidth]{#1}}{%
+        \fbox{\begin{minipage}{0.9\linewidth}
+            \centering\small
+            \vspace{0.35em}
             \textbf{Espacio reservado para la gráfica de MATLAB}\\[0.5em]
-            Archivo: \texttt{\detokenize{#1}}\\[0.5em]
-            Exportar la figura desde MATLAB y cargarla en Overleaf.
+            Archivo: \nolinkurl{#1}\\[0.5em]
+            Exportar la figura desde MATLAB y cargarla en Overleaf.\par
+            \vspace{0.35em}
         \end{minipage}}}
     \caption{#2}
     \label{#3}
 \end{figure}}
 \lstdefinestyle{matlab}{language=Matlab,basicstyle=\ttfamily\footnotesize,keywordstyle=\color{blue!60!black},commentstyle=\color{green!40!black},stringstyle=\color{orange!50!black},frame=single,breaklines=true,showstringspaces=false,columns=fullflexible}
 
-\begin{document}
-\thispagestyle{plain}
-\begin{center}
-    {\LARGE Control adaptativo con modelo de referencia\par
-    (MRAC directo)\par}
-    {\large Aeronave JAXA Mu-pal: dinámica longitudinal\par}
-    \vspace{0.75em}
-
-    Samuel David Negrete Lancheros\textsuperscript{1},
-    Jesús David Sánchez Cobos\textsuperscript{2},\\
-    Leonardo Acevedo Monroy\textsuperscript{3},
-    Ariel Giovanni Cárdenas Santisteban\textsuperscript{4}\par
-
-    {\small
-    Departamento de Ingeniería Mecánica y Mecatrónica, Facultad de Ingeniería\\
+% Portada de ancho completo y cuerpo en dos columnas.
+\title{%
+    \includegraphics[height=2cm]{escudo-unal.jpg}\\[0.35em]
+    \textbf{Control adaptativo con modelo de referencia\\(MRAC directo)}\\[0.2em]
+    {\large Aeronave JAXA Mu-pal: dinámica longitudinal}%
+}
+\author{%
+    \IEEEauthorblockN{Samuel David Negrete Lancheros\IEEEauthorrefmark{1},
+        Jesús David Sánchez Cobos\IEEEauthorrefmark{2},\\
+        Leonardo Acevedo Monroy\IEEEauthorrefmark{3},
+        Ariel Giovanni Cárdenas Santisteban\IEEEauthorrefmark{4}}
+    \IEEEauthorblockA{Departamento de Ingeniería Mecánica y Mecatrónica, Facultad de Ingeniería\\
     Universidad Nacional de Colombia, Sede Bogotá\\
-    Correos: \{\textsuperscript{1}snegrete,
-              \textsuperscript{2}jdsanchezco,
-              \textsuperscript{3}leacevedo,
-              \textsuperscript{4}arcardenass\}@unal.edu.co\\
+    Correos: \{\IEEEauthorrefmark{1}snegrete,
+              \IEEEauthorrefmark{2}jdsanchezco,
+              \IEEEauthorrefmark{3}leacevedo,
+              \IEEEauthorrefmark{4}arcardenass\}@unal.edu.co\\
     \textit{Técnicas de Control (Periodo 2026-II) --- Profesor: Jorge Iván Sofrony Esmeral}\\
-    Informe de taller --- Noviembre de 2026\par}
-\end{center}
+    Informe de taller --- Noviembre de 2026}
+}
+
+\begin{document}
+\maketitle
 
 \begin{abstract}
 Se estudia un controlador adaptativo directo con modelo de referencia (MRAC) para la dinámica longitudinal de la aeronave JAXA Mu-pal, con el objetivo de regular el ángulo de cabeceo y mantener una evolución estable de los estados. Se comprueba la estabilidad del modelo de referencia, se obtienen ganancias de acoplamiento aproximadas mediante pseudoinversa y se derivan las leyes adaptativas utilizando una función de Lyapunov. Se analizan dos ensayos numéricos implementados en MATLAB, uno con entrada escalón y otro con tren de pulsos. Los residuos de acoplamiento son pequeños, pero diferentes de cero; además, las ganancias adaptadas al final de las simulaciones no reproducen la matriz de referencia. Por ello se distinguen las garantías teóricas, válidas bajo acoplamiento exacto, de las observaciones obtenidas para el problema numérico concreto.
@@ -91,13 +77,15 @@ De acuerdo con el enunciado del taller \cite{sofrony2021}, la dinámica longitud
 \end{equation}
 donde $u_x$ y $u_z$ son componentes de velocidad, $\theta$ es el ángulo de cabeceo (\emph{pitch}), $q$ su velocidad angular y $u(t)$ la señal de control.
 \begin{equation}\label{eq:AB}
-A=\begin{bmatrix}
+\begin{aligned}
+A&=\begin{bmatrix}
 -0.0175&0.173&-9.77&-5.63\\
 -0.192&-1.09&-0.846&64.6\\
 0&0&0&1\\
 0.0081&-0.0738&0.0062&-1.9
-\end{bmatrix},\qquad
-B=\begin{bmatrix}-0.428\\4.91\\0\\4.22\end{bmatrix}.
+\end{bmatrix},\\
+B&=\begin{bmatrix}-0.428\\4.91\\0\\4.22\end{bmatrix}.
+\end{aligned}
 \end{equation}
 Se desea que la planta siga un modelo estable descrito por
 \begin{equation}\label{eq:referencia}
@@ -105,13 +93,15 @@ Se desea que la planta siga un modelo estable descrito por
 \end{equation}
 con matrices prescritas en el taller:
 \begin{equation}\label{eq:AmBm}
-A_m=\begin{bmatrix}
+\begin{aligned}
+A_m&=\begin{bmatrix}
 -0.03&0.166&125.6&37.29\\
 -0.052&-1.02&-1554.7&-427.82\\
 0&0&0&1\\
 0.128&-0.0142&-1335.49&-425.12
-\end{bmatrix},\quad
-B_m=\begin{bmatrix}-138.1\\1584.2\\0\\1361.6\end{bmatrix}.
+\end{bmatrix},\\
+B_m&=\begin{bmatrix}-138.1\\1584.2\\0\\1361.6\end{bmatrix}.
+\end{aligned}
 \end{equation}
 \textbf{Convención de error:}
 \begin{equation}\label{eq:error}
@@ -131,8 +121,10 @@ Dado que todos son negativos, el modelo de referencia es asintóticamente establ
 
 En respuesta a una referencia constante $r(t)=r_0$ y si $x_m(0)=0$, la respuesta se expresa como
 \begin{equation}
-    x_m(t)=\int_0^t e^{A_m(t-\tau)}B_mr_0\,\mathrm d\tau,
-    \qquad x_m(\infty)=-A_m^{-1}B_mr_0.
+    \begin{aligned}
+        x_m(t)&=\int_0^t e^{A_m(t-\tau)}B_mr_0\,\mathrm d\tau,\\
+        x_m(\infty)&=-A_m^{-1}B_mr_0.
+    \end{aligned}
 \end{equation}
 Este resultado permite interpretar la simulación ante un escalón sin confundir la respuesta del modelo con la de la planta adaptativa.
 
@@ -160,8 +152,10 @@ Como $B$ es un vector de cuatro filas y una columna, las cuatro columnas de $A_m
 
 Para calcular el mejor ajuste en mínimos cuadrados se usa la pseudoinversa de Moore--Penrose:
 \begin{equation}
- B^{\dagger}=(B^TB)^{-1}B^T,\qquad
- K_x^{*T}=B^{\dagger}(A_m-A),\qquad k_r^*=B^{\dagger}B_m.
+    \begin{gathered}
+        B^{\dagger}=(B^TB)^{-1}B^T,\\
+        K_x^{*T}=B^{\dagger}(A_m-A),\qquad k_r^*=B^{\dagger}B_m.
+    \end{gathered}
 \end{equation}
 El denominador escalar es
 \begin{equation}
@@ -175,13 +169,18 @@ Por ejemplo, para la tercera componente de $K_x^*$, correspondiente a $\theta$, 
 y se obtiene
 \begin{align}
     k_{x,3}^*&=\frac{B^T\Delta a_3}{B^TB}\\
-    &=\frac{(-0.428)(135.37)+(4.91)(-1553.854)+(4.22)(-1335.4962)}{42.099684}\\
+    &=\frac{\begin{gathered}
+        (-0.428)(135.37)+(4.91)(-1553.854)\\
+        {}+(4.22)(-1335.4962)
+    \end{gathered}}{42.099684}\\
     &\approx -316.4669.
 \end{align}
 Repitiendo el procedimiento para las demás columnas y para $B_m$ se encuentran los valores reportados por MATLAB:
 \begin{equation}\label{eq:Kstar}
-    \boxed{K_x^{*T}\approx
-    \begin{bmatrix}0.0285&0.0142&-316.4669&-100.2891\end{bmatrix},}
+    \boxed{\begin{gathered}
+        K_x^{*T}\approx\\
+        \begin{bmatrix}0.0285&0.0142&-316.4669&-100.2891\end{bmatrix},
+    \end{gathered}}
 \end{equation}
 \begin{equation}\label{eq:krstar}
     \boxed{k_r^*\approx 322.65042179.}
@@ -194,8 +193,10 @@ Se definen los residuos de acoplamiento
 \end{equation}
 Los resultados fueron
 \begin{equation}\label{eq:residuosnumeric}
-    \boxed{\norm{\Delta_A}_F=0.078168555,\qquad
-    \norm{\Delta_B}_2=0.021151833.}
+    \boxed{\begin{aligned}
+        \norm{\Delta_A}_F&=0.078168555,\\
+        \norm{\Delta_B}_2&=0.021151833.
+    \end{aligned}}
 \end{equation}
 Ambas cantidades son diferentes de cero: \textbf{las matrices dadas permiten un acoplamiento numérico muy cercano, pero no exacto}. Una explicación plausible es el redondeo de las entradas de $A_m$ y $B_m$; sin matrices de mayor precisión no es posible confirmar que esta sea la única causa. La demostración teórica estándar debe interpretarse bajo la hipótesis de acoplamiento exacto.
 
@@ -213,7 +214,8 @@ Al derivar \eqref{eq:error} y sustituir las dinámicas del modelo y la planta:
 \end{align}
 Usando $x_m=x+e$ y las igualdades exactas \eqref{eq:matching}:
 \begin{align}
-    \dot e&=A_me+(A_m-A)x+(B_m-B\hat k_r)r-B\hat K_x^Tx\\
+    \dot e&=A_me+(A_m-A)x+(B_m-B\hat k_r)r
+    \notag\\ &\quad-B\hat K_x^Tx\\
     &=A_me+B(K_x^*-\hat K_x)^Tx+B(k_r^*-\hat k_r)r.
 \end{align}
 Así,
@@ -244,7 +246,7 @@ Dado que $P$ y $\Gamma_x$ son definidas positivas, y $\gamma_r>0$, se cumple $V\
 Derivando respecto del tiempo, suponiendo constantes las ganancias ideales,
 \begin{align}
     \dot V&=\dot e^TPe+e^TP\dot e
-    +2\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
+    \notag\\ &\quad+2\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
     +\frac{2\tilde k_r}{\gamma_r}\dot{\hat k}_r\\
     &=2e^TP\dot e+2\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
     +\frac{2\tilde k_r}{\gamma_r}\dot{\hat k}_r.
@@ -252,7 +254,7 @@ Derivando respecto del tiempo, suponiendo constantes las ganancias ideales,
 Sustituyendo \eqref{eq:errorideal}:
 \begin{align}
     \dot V={}&e^T(A_m^TP+PA_m)e
-    -2e^TPB\,\tilde K_x^Tx-2e^TPB\,\tilde k_r r\\
+    \notag\\ &-2e^TPB\,\tilde K_x^Tx-2e^TPB\,\tilde k_r r\\
     &+2\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
     +\frac{2\tilde k_r}{\gamma_r}\dot{\hat k}_r.
 \end{align}
@@ -264,8 +266,10 @@ Aplicando \eqref{eq:lyapeq}:
 \end{align}
 Los términos cruzados se cancelan con las siguientes leyes:
 \begin{equation}\label{eq:adapt}
-    \boxed{\dot{\hat K}_x=\Gamma_x x\,(e^TPB),\qquad
-    \dot{\hat k}_r=\gamma_r r\,(e^TPB).}
+    \boxed{\begin{aligned}
+        \dot{\hat K}_x&=\Gamma_x x\,(e^TPB),\\
+        \dot{\hat k}_r&=\gamma_r r\,(e^TPB).
+    \end{aligned}}
 \end{equation}
 Nótese que los signos son \textbf{positivos} porque se ha definido $e=x_m-x$.
 Sustituyendo \eqref{eq:adapt} en \eqref{eq:Vdotexpanded},
@@ -278,7 +282,10 @@ Para las \emph{condiciones de acoplamiento exactas} y una referencia acotada, la
 
 \textbf{Limitación para los datos del taller.} Como $\Delta_A\neq0$ y $\Delta_B\neq0$, la dinámica real del error contiene términos adicionales:
 \begin{equation}\label{eq:realerror}
-    \boxed{\dot e=A_me-B(\tilde K_x^Tx+\tilde k_rr)+\Delta_Ax+\Delta_Br.}
+    \boxed{\begin{aligned}
+        \dot e&=A_me-B(\tilde K_x^Tx+\tilde k_rr)\\
+              &\quad+\Delta_Ax+\Delta_Br.
+    \end{aligned}}
 \end{equation}
 Con las mismas leyes adaptativas se obtiene
 \begin{equation}\label{eq:realVdot}
@@ -302,6 +309,8 @@ La asignación utilizada es
 Se utilizó el vector inicial nulo $z(0)=0_{13\times1}$ y el integrador \texttt{ode15s}, apropiado para explorar sistemas con escalas temporales muy diferentes. Las simulaciones se ejecutaron por separado para una referencia escalón y otra de tren de pulsos. Como la impresión numérica proporcionada no incluye el tiempo final ni los parámetros temporales y amplitudes de estas señales, dichos valores deben consultarse directamente en el script antes de describirlos cuantitativamente en el texto o las figuras.
 
 La ganancia de adaptación vectorial y escalar se parametriza mediante $\Gamma_x$ y $\gamma_r$; se recomienda reportar aquí los valores exactos que quedaron definidos en la versión de MATLAB ejecutada. La estructura central de la función de dinámica es:
+
+\noindent\begin{minipage}{\linewidth}
 \begin{lstlisting}[style=matlab]
 x    = z(1:4);        xm   = z(5:8);
 Khat = z(9:12);       krhat = z(13);
@@ -313,13 +322,16 @@ dKhat = GammaX*x*(e.'*P*B);
 dkrhat = gammaR*r*(e.'*P*B);
 dz = [dx; dxm; dKhat; dkrhat];
 \end{lstlisting}
+\end{minipage}
 
 \section{Resultados y discusión}
 \subsection{Ensayo 1: entrada escalón}
 Los valores finales informados fueron
 \begin{equation}\label{eq:stepK}
-\hat K_x^T(t_f)=\begin{bmatrix}-0.8660&-9.0106&3.9486&-239.4407\end{bmatrix},
-\qquad \hat k_r(t_f)=168.36175915.
+\begin{gathered}
+\hat K_x^T(t_f)=\begin{bmatrix}-0.8660&-9.0106&3.9486&-239.4407\end{bmatrix},\\
+\hat k_r(t_f)=168.36175915.
+\end{gathered}
 \end{equation}
 La norma del error de estados en el instante final es
 \begin{equation}
@@ -329,12 +341,15 @@ Por consiguiente, el error al final de la simulación \emph{no} es nulo. Como $\
 
 La matriz instantánea de lazo cerrado evaluada con las ganancias finales fue
 \begin{equation}\label{eq:aclstep}
-    A+B\hat K_x^T(t_f)\approx10^3\begin{bmatrix}
+    \begin{gathered}
+    A+B\hat K_x^T(t_f)\\
+    {}\approx 10^3\begin{bmatrix}
      0.0004& 0.0040&-0.0115& 0.0969\\
     -0.0044&-0.0453& 0.0185&-1.1111\\
      0&0&0&0.0010\\
     -0.0036&-0.0381& 0.0167&-1.0123
     \end{bmatrix}.
+    \end{gathered}
 \end{equation}
 Comparándola con $A_m$ se obtuvo
 \begin{equation}\label{eq:stepResid}
@@ -348,8 +363,10 @@ La diferencia es muy superior al residuo obtenido con $K_x^*$ en la sección~\re
 \subsection{Ensayo 2: tren de pulsos}
 Los valores finales reportados fueron
 \begin{equation}\label{eq:pulseK}
-\hat K_x^T(t_f)=\begin{bmatrix}-10.6056&-51.9365&1.3499&-235.3359\end{bmatrix},
-\qquad \hat k_r(t_f)=168.32289102.
+\begin{gathered}
+\hat K_x^T(t_f)=\begin{bmatrix}-10.6056&-51.9365&1.3499&-235.3359\end{bmatrix},\\
+\hat k_r(t_f)=168.32289102.
+\end{gathered}
 \end{equation}
 La norma del error final fue
 \begin{equation}
@@ -357,12 +374,15 @@ La norma del error final fue
 \end{equation}
 La matriz instantánea de lazo cerrado, con las ganancias finales congeladas, fue
 \begin{equation}\label{eq:aclpulse}
-    A+B\hat K_x^T(t_f)\approx10^3\begin{bmatrix}
+    \begin{gathered}
+    A+B\hat K_x^T(t_f)\\
+    {}\approx 10^3\begin{bmatrix}
      0.0045&0.0224&-0.0103&0.0951\\
     -0.0523&-0.2561&0.0058&-1.0909\\
      0&0&0&0.0010\\
     -0.0447&-0.2192&0.0057&-0.9950
     \end{bmatrix}.
+    \end{gathered}
 \end{equation}
 La discrepancia respecto a la matriz de referencia fue
 \begin{equation}\label{eq:pulseResid}
@@ -374,12 +394,12 @@ Este valor es ligeramente menor que el obtenido con el escalón, pero continúa 
 \figuraopcional{figuras/ganancias_pulsos.png}{Evolución temporal de las ganancias adaptativas ante un tren de pulsos.}{fig:ganancias_pulsos}
 
 \subsection{Comparación cuantitativa de resultados}
-\begin{table}[H]
+\begin{table}[!t]
 \centering
 \caption{Comparación de las simulaciones de MRAC directo.}
 \label{tab:comparacion}
 \small
-\begin{tabularx}{\textwidth}{@{}Xrr@{}}
+\begin{tabularx}{\linewidth}{@{}Xrr@{}}
 \toprule
 \textbf{Magnitud} & \textbf{Escalón} & \textbf{Tren de pulsos}\\
 \midrule
@@ -393,19 +413,19 @@ En comparación, las ganancias de ajuste ideales aproximadas dan $k_r^*\approx32
 
 \subsection{Análisis adicional de polos de las matrices finales}
 Como comprobación adicional, es posible calcular los autovalores de $A+B\hat K_x^T(t_f)$ utilizando las ganancias finales \emph{redondeadas} que se imprimieron en MATLAB. Esta operación equivale a congelar momentáneamente las ganancias, y no debe confundirse con un análisis completo de estabilidad del sistema adaptativo, cuyas ganancias cambian con el tiempo.
-\begin{table}[H]
+\begin{table}[!t]
 \centering
 \caption{Autovalores aproximados de las matrices con ganancias finales congeladas.}
 \label{tab:autovalores_finales}
 \small
-\begin{tabular}{@{}ll@{}}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
 \toprule
 \textbf{Ensayo} & \textbf{Autovalores aproximados}\\
 \midrule
 Escalón & $-1053.9573,\ -3.3442,\ -0.00858\pm0.10252\,\mathrm{i}$\\
 Tren de pulsos & $-1234.1071,\ -12.4768,\ -0.03892,\ +0.02880$\\
 \bottomrule
-\end{tabular}
+\end{tabularx}
 \end{table}
 En el caso del escalón los polos de la matriz congelada tienen parte real negativa, aunque aparece un par complejo débilmente amortiguado. En el caso del tren de pulsos aparece un polo real positivo con las ganancias finales redondeadas. Esto advierte que \emph{mantener fijas} estas ganancias del segundo ensayo no produciría una matriz Hurwitz. Sin embargo, no basta para afirmar que toda la trayectoria adaptativa sea inestable, porque $\hat K_x(t)$ evoluciona durante la simulación.
 
