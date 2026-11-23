@@ -44,25 +44,28 @@
 \lstdefinestyle{matlab}{language=Matlab,basicstyle=\ttfamily\footnotesize,keywordstyle=\color{blue!60!black},commentstyle=\color{green!40!black},stringstyle=\color{orange!50!black},frame=single,breaklines=true,showstringspaces=false,columns=fullflexible}
 
 \begin{document}
-\begin{titlepage}
-    \centering
-    {\Large Universidad Nacional de Colombia\par}
-    \vspace{1.2cm}
-    {\large Informe de taller\par}
-    \vspace{0.5cm}
-    {\LARGE\bfseries Control adaptativo con modelo de referencia (MRAC directo)\par}
-    \vspace{0.5cm}
-    {\Large Aeronave JAXA Mu-pal: dinámica longitudinal\par}
-    \vspace{1.8cm}
-    \textbf{Estudiante(s):} \underline{\hspace{8cm}}\par
-    \vspace{0.6cm}
-    \textbf{Asignatura:} \underline{\hspace{8cm}}\par
-    \vspace{0.6cm}
-    \textbf{Docente:} \underline{\hspace{8cm}}\par
-    \vfill
-    Bogotá, Colombia\\
-    Noviembre de 2026
-\end{titlepage}
+\thispagestyle{plain}
+\begin{center}
+    {\LARGE Control adaptativo con modelo de referencia\par
+    (MRAC directo)\par}
+    {\large Aeronave JAXA Mu-pal: dinámica longitudinal\par}
+    \vspace{0.75em}
+
+    Samuel David Negrete Lancheros\textsuperscript{1},
+    Jesús David Sánchez Cobos\textsuperscript{2},\\
+    Leonardo Acevedo Monroy\textsuperscript{3},
+    Ariel Giovanni Cárdenas Santisteban\textsuperscript{4}\par
+
+    {\small
+    Departamento de Ingeniería Mecánica y Mecatrónica, Facultad de Ingeniería\\
+    Universidad Nacional de Colombia, Sede Bogotá\\
+    Correos: \{\textsuperscript{1}snegrete,
+              \textsuperscript{2}jdsanchezco,
+              \textsuperscript{3}leacevedo,
+              \textsuperscript{4}arcardenass\}@unal.edu.co\\
+    \textit{Técnicas de Control (Periodo 2026-II) --- Profesor: Jorge Iván Sofrony Esmeral}\\
+    Informe de taller --- Noviembre de 2026\par}
+\end{center}
 
 \begin{abstract}
 Se estudia un controlador adaptativo directo con modelo de referencia (MRAC) para la dinámica longitudinal de la aeronave JAXA Mu-pal, con el objetivo de regular el ángulo de cabeceo y mantener una evolución estable de los estados. Se comprueba la estabilidad del modelo de referencia, se obtienen ganancias de acoplamiento aproximadas mediante pseudoinversa y se derivan las leyes adaptativas utilizando una función de Lyapunov. Se analizan dos ensayos numéricos implementados en MATLAB, uno con entrada escalón y otro con tren de pulsos. Los residuos de acoplamiento son pequeños, pero diferentes de cero; además, las ganancias adaptadas al final de las simulaciones no reproducen la matriz de referencia. Por ello se distinguen las garantías teóricas, válidas bajo acoplamiento exacto, de las observaciones obtenidas para el problema numérico concreto.
