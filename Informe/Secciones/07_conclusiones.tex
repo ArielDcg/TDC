@@ -4,7 +4,7 @@
 \section{Conclusiones}
 
 \begin{itemize}
-    \item La ganancia derivativa debe estar acompañada de un filtro para ser implementable, cambiando el valor de N cambia tanto el la magnitud del bode en alta frecuencia como la frecuencia a la que se estabiliza
+    \item La acción derivativa se implementó con un filtro de primer orden para limitar la amplificación del ruido de medición. El parámetro \(N\) determina tanto la magnitud que alcanza el término derivativo a altas frecuencias como la frecuencia a partir de la cual esa magnitud comienza a estabilizarse en el diagrama de Bode. Entre los valores evaluados, \(N = 500\) dio el mejor resultado. 
 
     \item Para una siguiente implementación es necesario tener en cuenta el antiwindup para que no siga acumulando el integrador en medio de la saturación, se probó la técnica más trivial pero se sacrificaba desempeño introduciendo un carácter oscilatorio.
     

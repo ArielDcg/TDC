@@ -3,11 +3,25 @@
 % ============================================================
 \section{Resultados y Comparación}
 
-
-
 \subsection{Validación de la Respuesta en Simulación}
 % Contraste de la respuesta transitoria del modelo no lineal simulado en SimulinkPrueba.slx
 % frente al modelo linealizado matricialmente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Informe/Imagenes/Simulink_CaracterizaccionLazoCerrado.eps}
+    \caption{Simulink Lazo cerrado con planta no lineal}
+    \label{fig:placeholder}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\linewidth]{Informe/Imagenes/PID.eps}
+    \caption{Comparación con simulación}
+    \label{fig:placeholder}
+\end{figure}
+
+Se implementó en Simulink un esquema de control en lazo cerrado para comparar la respuesta simulada con la del aeropéndulo real. En ambos casos se utilizó el mismo controlador y se aplicó una referencia periódica con tramos ascendentes y descendentes, generada mediante el bloque Repeating Sequence. Las respuestas se graficaron en tiempo real. La comparación visual mostró que ambas siguieron una evolución similar a lo largo del ensayo, en línea con el comportamiento esperado..
 
 \subsection{Respuesta Experimental en la Planta Física}
 
@@ -17,3 +31,4 @@
     \caption{Implementación del controlador PID ideal con una referencia de 172°}
     \label{fig:172}
 \end{figure}
+La planta tiene una respuesta un poco más lenta que la simulación además de presentar un menor sobre pico en general. Es importante notar que el controlador es capaz de suplir la falencias del modelado de la planta a pequeñas y altas ganancias, logrando que tanto la simulación como la planta real tengan comportamientos similares.

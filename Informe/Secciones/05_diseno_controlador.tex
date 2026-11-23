@@ -12,7 +12,7 @@ Normalizando el polinomio característico, la función de transferencia adopta l
 \begin{equation}
 G(s) \approx \frac{1{,}0221}{s^2 + 3{,}6656\,s + 62{,}91}
 \end{equation}
-De esta expresión se evidencia una planta altamente resonante y subamortiguada en lazo abierto, con una frecuencia natural no amortiguada de $\omega_n \approx 7{,}93\,\mathrm{rad/s}$ y un factor de amortiguamiento relativo sumamente bajo ($\zeta \approx 0.2503$). 
+De esta expresión se evidencia una planta altamente resonante y subamortiguada en lazo abierto, con una frecuencia natural no amortiguada de $\omega_n \approx 7{,}93\,\mathrm{rad/s}$ y un factor de amortiguamiento relativo sumamente bajo ($\zeta \approx 0.2311$). 
 
 Para garantizar un desempeño dinámico seguro y preciso en la plataforma física, se establecieron las siguientes especificaciones en lazo cerrado:
 \begin{itemize}
@@ -26,14 +26,7 @@ Como punto de partida preliminar, se diseñó un controlador PID ideal de la for
 \begin{equation}
   C_0(s) = K_p + \frac{K_i}{s} + K_d s = \frac{11{,}571\,(s+4)^2}{s}
 \end{equation}
-Este controlador, obtenido mediante el Lugar Geométrico de las Raíces en \textit{Control System Designer}, exhibe un margen de fase elevado ($PM \approx 78^\circ$), lo que permitió llevar el brazo hasta $172^\circ$ en las primeras pruebas físicas, como se observa en la Figura \ref{fig:contIdeal}. Se implementó en el ESP32 con la salvedad de que, en el primer ciclo de muestreo, el término derivativo se forzaba a cero por no disponer aún de una muestra anterior, lo que constituía una aproximación aceptable dado el reducido periodo $T_s = 2\,\mathrm{ms}$.
-
-%\begin{figure}[h!]
-%    \centering
-%    \includegraphics[width=0.75\linewidth]%{Informe/Imagenes/172Demo.png}
-%    \caption{Aeropéndulo con referencia de 172 grados con el %controlador ideal}
-%    \label{fig:contIdeal}
-%\end{figure}
+Este controlador, obtenido mediante el Lugar Geométrico de las Raíces en \textit{Control System Designer}, exhibe un margen de fase elevado ($PM \approx 78^\circ$), lo que permitió llevar el brazo hasta $172^\circ$ en las primeras pruebas físicas, como se observa en la Figura \ref{fig:172}. Se implementó en el ESP32 con la salvedad de que, en el primer ciclo de muestreo, el término derivativo se forzaba a cero por no disponer aún de una muestra anterior, lo que constituía una aproximación aceptable dado el reducido periodo $T_s = 2\,\mathrm{ms}$.
 
 No obstante, el controlador PID ideal no es físicamente implementable: presenta ganancia infinita a altas frecuencias, generando picos de saturación en el actuador que activaban permanentemente la zona de \textit{anti-windup}. Por recomendación del profesor, se migró a una estructura \textbf{PID con filtro derivativo (PIDF)}, introduciendo un polo real $N$ que limita la ganancia de alta frecuencia. El problema inmediato fue que reducir $N$ para acotar el pico de la señal de control deterioraba el margen de fase, reproduciendo el compromiso descrito a continuación. La función de transferencia adopta la forma:
 \begin{equation}
@@ -58,7 +51,7 @@ El diseño y ajuste de los parámetros se llevó a cabo en MATLAB mediante la he
 
 La función de transferencia final del compensador diseñado es:
 \begin{equation}
-  C(s) = \frac{399{,}55\,(s + 6)(s + 3)}{s(s + 40)}
+  C(s) = \frac{4012{,}20\,(s + 6)(s + 3)}{s(s + 500)}
   \label{eq:controlador_disenado}
 \end{equation}
 Al evaluar la función de lazo abierto $L(s) = C(s)G(s)$, se obtiene una frecuencia de cruce de ganancia $\omega_{gc} = 14{,}78\,\mathrm{rad/s}$ y un Margen de Fase exacto de $PM = 39{,}47^\circ$ ($\approx 39{,}5^\circ$), cumpliendo con la supresión de resonancia y asegurando un tiempo de establecimiento simulado inferior a $3\,\mathrm{s}$.
@@ -69,8 +62,31 @@ La conversión a la forma paralela estándar con filtro derivativo:
 \end{equation}
 arroja las ganancias equivalentes de sintonización:
 \begin{equation}
-  K_p \approx 85{,}40, \quad K_i \approx 179{,}80, \quad K_d \approx 7{,}85, \quad N = 40
+  K_p \approx 85{,}40, \quad K_i \approx 179{,}80, \quad K_d \approx 7{,}85, \quad N = 500
 \end{equation}
+
+A continuación, en la Figuras \ref{fig:DBCR}, \ref{fig:DRLCR}, \ref{fig:DSCR} se presenta las características del controlador real.
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Informe/Imagenes/ControlRealBode.eps}
+    \caption{Diagrama Bode del producto C*G Real}
+    \label{fig:DBCR}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Informe/Imagenes/ControlRealRL.eps}
+    \caption{Diagrama Root Locus del producto C*G Real}
+    \label{fig:DRLCR}
+\end{figure}
+
+\begin{figure}
+    \centering
+    \includegraphics[width=1\linewidth]{Informe/Imagenes/ControlRealStep.eps}
+    \caption{Diagrama del Step del Controlador Real}
+    \label{fig:DSCR}
+\end{figure}
 
 \subsection{Implementación Computacional}
 La ley de control se programó en el microcontrolador ESP32 ejecutando un lazo periódico con un periodo de muestreo discreto de $T_s = 2\,\mathrm{ms}$ ($500\,\mathrm{Hz}$):
