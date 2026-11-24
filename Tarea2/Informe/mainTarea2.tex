@@ -10,6 +10,7 @@
 \usepackage{hyperref}
 \usepackage{enumitem}
 \usepackage{listings}
+\usepackage{float}
 \hypersetup{colorlinks=true,linkcolor=blue!55!black,urlcolor=blue!55!black,citecolor=blue!55!black}
 \newcommand{\norm}[1]{\left\lVert #1\right\rVert}
 \newcommand{\figuraopcional}[3]{%
@@ -31,7 +32,7 @@
 
 % Portada de ancho completo y cuerpo en dos columnas.
 \title{%
-    \includegraphics[height=2cm]{escudo-unal.jpg}\\[0.35em]
+    \includegraphics[height=3cm]{Tarea2/Informe/Imagenes/LogoUnalpng.eps}\\[0.35em]
     \textbf{Control adaptativo con modelo de referencia\\(MRAC directo)}\\[0.2em]
     {\large Aeronave JAXA Mu-pal: dinámica longitudinal}%
 }
@@ -70,7 +71,7 @@ Se estudia un controlador adaptativo directo con modelo de referencia (MRAC) par
 \end{enumerate}
 
 \section{Modelo matemático de la aeronave}
-De acuerdo con el enunciado del taller \cite{sofrony2021}, la dinámica longitudinal linealizada se representa como
+La dinámica longitudinal linealizada se representa como
 \begin{equation}\label{eq:planta}
     \dot x(t)=Ax(t)+Bu(t), \qquad
     x=\begin{bmatrix}u_x&u_z&\theta&q\end{bmatrix}^{T},
@@ -91,7 +92,7 @@ Se desea que la planta siga un modelo estable descrito por
 \begin{equation}\label{eq:referencia}
     \dot x_m(t)=A_m x_m(t)+B_m r(t),
 \end{equation}
-con matrices prescritas en el taller:
+con matrices:
 \begin{equation}\label{eq:AmBm}
 \begin{aligned}
 A_m&=\begin{bmatrix}
@@ -103,6 +104,13 @@ A_m&=\begin{bmatrix}
 B_m&=\begin{bmatrix}-138.1\\1584.2\\0\\1361.6\end{bmatrix}.
 \end{aligned}
 \end{equation}
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/respuesta_sisref.eps}
+    \caption{Gráficos de los estados del sistema de referencia para una entrada tipo paso}
+    \label{respuesta_sisref}
+\end{figure}
+
 \textbf{Convención de error:}
 \begin{equation}\label{eq:error}
     e(t)=x_m(t)-x(t).
@@ -117,16 +125,7 @@ Los autovalores calculados en MATLAB fueron
 \begin{equation}\label{eq:eigAm}
     \lambda(A_m)=\{-421.9808,\ -3.1703,\ -0.0528,\ -0.9661\}.
 \end{equation}
-Dado que todos son negativos, el modelo de referencia es asintóticamente estable. La presencia de polos con magnitudes muy diferentes (en particular, $-421.9808$ y $-0.0528$) evidencia escalas temporales muy distintas, lo cual puede hacer rígida la integración numérica.
-
-En respuesta a una referencia constante $r(t)=r_0$ y si $x_m(0)=0$, la respuesta se expresa como
-\begin{equation}
-    \begin{aligned}
-        x_m(t)&=\int_0^t e^{A_m(t-\tau)}B_mr_0\,\mathrm d\tau,\\
-        x_m(\infty)&=-A_m^{-1}B_mr_0.
-    \end{aligned}
-\end{equation}
-Este resultado permite interpretar la simulación ante un escalón sin confundir la respuesta del modelo con la de la planta adaptativa.
+Dado que todos son negativos, el modelo de referencia es asintóticamente estable.
 
 \subsection{Condiciones de acoplamiento}
 Se adopta la ley de control de estructura fija y parámetros ajustables:
@@ -147,58 +146,73 @@ Equivalentemente,
     BK_x^{*T}=A_m-A,\qquad Bk_r^*=B_m.
 \end{equation}
 
-\subsection{Cálculo de ganancias aproximadas mediante pseudoinversa}
-Como $B$ es un vector de cuatro filas y una columna, las cuatro columnas de $A_m-A$ deben pertenecer al subespacio generado por $B$ para cumplir exactamente la primera condición. Esto no está garantizado por los datos impresos.
 
-Para calcular el mejor ajuste en mínimos cuadrados se usa la pseudoinversa de Moore--Penrose:
+\subsection{Cálculo de las ganancias ideales mediante pseudoinversa}
+
+Para determinar las ganancias ideales del controlador, se parte
+de las condiciones de acoplamiento entre la planta y el
+modelo de referencia:
+
 \begin{equation}
-    \begin{gathered}
-        B^{\dagger}=(B^TB)^{-1}B^T,\\
-        K_x^{*T}=B^{\dagger}(A_m-A),\qquad k_r^*=B^{\dagger}B_m.
-    \end{gathered}
-\end{equation}
-El denominador escalar es
-\begin{equation}
-    B^TB=(-0.428)^2+(4.91)^2+0^2+(4.22)^2=42.099684.
-\end{equation}
-Por ejemplo, para la tercera componente de $K_x^*$, correspondiente a $\theta$, se toma la tercera columna de $A_m-A$:
-\begin{equation}
-    \Delta a_3=
-    \begin{bmatrix}135.37&-1553.854&0&-1335.4962\end{bmatrix}^{T}
-\end{equation}
-y se obtiene
-\begin{align}
-    k_{x,3}^*&=\frac{B^T\Delta a_3}{B^TB}\\
-    &=\frac{\begin{gathered}
-        (-0.428)(135.37)+(4.91)(-1553.854)\\
-        {}+(4.22)(-1335.4962)
-    \end{gathered}}{42.099684}\\
-    &\approx -316.4669.
-\end{align}
-Repitiendo el procedimiento para las demás columnas y para $B_m$ se encuentran los valores reportados por MATLAB:
-\begin{equation}\label{eq:Kstar}
-    \boxed{\begin{gathered}
-        K_x^{*T}\approx\\
-        \begin{bmatrix}0.0285&0.0142&-316.4669&-100.2891\end{bmatrix},
-    \end{gathered}}
-\end{equation}
-\begin{equation}\label{eq:krstar}
-    \boxed{k_r^*\approx 322.65042179.}
+    A+BK_x^{*T}=A_m
 \end{equation}
 
-\subsection{Verificación de las condiciones de acoplamiento}
-Se definen los residuos de acoplamiento
-\begin{equation}\label{eq:residuos}
-    \Delta_A=A_m-(A+BK_x^{*T}),\qquad \Delta_B=B_m-Bk_r^*.
+\begin{equation}
+    Bk_r^*=B_m
 \end{equation}
-Los resultados fueron
-\begin{equation}\label{eq:residuosnumeric}
-    \boxed{\begin{aligned}
-        \norm{\Delta_A}_F&=0.078168555,\\
-        \norm{\Delta_B}_2&=0.021151833.
-    \end{aligned}}
+
+Despejando las ganancias, se obtiene:
+
+\begin{equation}
+    BK_x^{*T}=A_m-A
 \end{equation}
-Ambas cantidades son diferentes de cero: \textbf{las matrices dadas permiten un acoplamiento numérico muy cercano, pero no exacto}. Una explicación plausible es el redondeo de las entradas de $A_m$ y $B_m$; sin matrices de mayor precisión no es posible confirmar que esta sea la única causa. La demostración teórica estándar debe interpretarse bajo la hipótesis de acoplamiento exacto.
+
+\begin{equation}
+    Bk_r^*=B_m
+\end{equation}
+
+En principio, podríamos multiplicar ambas expresiones por
+la inversa de $B$. Sin embargo, la matriz $B$ tiene
+dimensiones $4\times1$, por lo que no es cuadrada y no
+posee inversa convencional.
+
+Para solucionar esta dificultad, se utiliza la
+\textbf{pseudoinversa de Moore-Penrose}, que permite
+obtener una solución aproximada mediante mínimos cuadrados:
+
+\begin{equation}
+    B^\dagger=(B^TB)^{-1}B^T
+\end{equation}
+
+De esta manera, las ganancias se calculan como:
+
+\begin{equation}
+    \boxed{K_x^{*T}=B^\dagger(A_m-A)}
+\end{equation}
+
+\begin{equation}
+    \boxed{k_r^*=B^\dagger B_m}
+\end{equation}
+
+Aplicando estas expresiones a las matrices del sistema,
+se obtienen las siguientes ganancias aproximadas:
+
+\begin{equation}
+    \boxed{
+    K_x^{*T}\approx
+    \begin{bmatrix}
+    0.0285 & 0.0142 & -316.4669 & -100.2891
+    \end{bmatrix}
+    }
+\end{equation}
+
+\begin{equation}
+    \boxed{k_r^*\approx322.6504}
+\end{equation}
+
+Estos valores representan las ganancias constantes que
+mejor aproximan las condiciones de acoplamiento del
+modelo de referencia a partir de los datos proporcionados.
 
 \section{Paso 2. Diseño de leyes adaptativas mediante Lyapunov}
 \subsection{Dinámica del error en el caso ideal}
@@ -228,70 +242,207 @@ Como $A_m$ es Hurwitz, para toda matriz simétrica definida positiva $Q=Q^T\succ
 \begin{equation}\label{eq:lyapeq}
     \boxed{A_m^TP+PA_m=-Q.}
 \end{equation}
-En MATLAB, para un valor seleccionado de $Q$, se resuelve con \texttt{P = lyap(Am',Q)}. Los autovalores de $P$ informados por MATLAB (visualizados con factor común $10^5$) son
-\begin{equation}\label{eq:eigP}
-    \lambda(P)=10^5\times
-    \begin{bmatrix}0.0000&0.0002&0.0083&2.3630\end{bmatrix}^{T},
-\end{equation}
-donde los ceros son consecuencia del formato de redondeo de MATLAB, no evidencia de autovalores exactamente nulos. El cálculo numérico proporciona $\norm{A_m^TP+PA_m+Q}\approx 3.388\times10^{-6}$. El valor bajo de este residuo apoya que la ecuación de Lyapunov se resolvió adecuadamente, a la precisión de la simulación. La elección exacta de $Q$ debe conservarse de acuerdo con el script ejecutado.
+
 
 \subsection{Construcción de la función candidata}
-Se consideran parámetros de adaptación $\Gamma_x=\Gamma_x^T\succ0$ y $\gamma_r>0$, y la función candidata
+
+Se consideran los parámetros de adaptación
+$\Gamma_x=\Gamma_x^T\succ0$ y $\gamma_r>0$.
+Siguiendo la formulación mediante trazas,
+se propone la siguiente función candidata de Lyapunov:
+
 \begin{equation}\label{eq:V}
-    \boxed{V=e^TPe+\tilde K_x^T\Gamma_x^{-1}\tilde K_x
-          +\frac{\tilde k_r^2}{\gamma_r}.}
+\boxed{
+\begin{aligned}
+V={}&e^TPe\\
+&+\operatorname{tr}\left(
+\tilde K_x^T\Gamma_x^{-1}\tilde K_x
+\right)\\
+&+\operatorname{tr}\left(
+\tilde k_r\gamma_r^{-1}\tilde k_r^T
+\right)
+\end{aligned}
+}
 \end{equation}
-Dado que $P$ y $\Gamma_x$ son definidas positivas, y $\gamma_r>0$, se cumple $V\geq0$ y $V=0$ únicamente si $e=0$, $\tilde K_x=0$ y $\tilde k_r=0$.
 
-Derivando respecto del tiempo, suponiendo constantes las ganancias ideales,
+Donde $\tilde K_x=\hat K_x-K_x^*$ y
+$\tilde k_r=\hat k_r-k_r^*$ representan los errores
+de estimación de las ganancias.
+
+Dado que $P$ y $\Gamma_x$ son definidas positivas
+y $\gamma_r>0$, la función candidata es
+definida positiva respecto de los errores considerados.
+
+Derivando respecto al tiempo y considerando constantes
+las ganancias ideales:
+
 \begin{align}
-    \dot V&=\dot e^TPe+e^TP\dot e
-    \notag\\ &\quad+2\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
-    +\frac{2\tilde k_r}{\gamma_r}\dot{\hat k}_r\\
-    &=2e^TP\dot e+2\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
-    +\frac{2\tilde k_r}{\gamma_r}\dot{\hat k}_r.
+\dot V={}&2e^TP\dot e \notag\\
+&+2\operatorname{tr}\left(
+\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
+\right)\notag\\
+&+2\operatorname{tr}\left(
+\tilde k_r\gamma_r^{-1}\dot{\hat k}_r^T
+\right).
 \end{align}
-Sustituyendo \eqref{eq:errorideal}:
+
+Sustituyendo la dinámica del error:
+
+\begin{equation}
+\dot e=A_me-B\tilde K_x^Tx-B\tilde k_r r
+\end{equation}
+
+Se obtiene:
+
 \begin{align}
-    \dot V={}&e^T(A_m^TP+PA_m)e
-    \notag\\ &-2e^TPB\,\tilde K_x^Tx-2e^TPB\,\tilde k_r r\\
-    &+2\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
-    +\frac{2\tilde k_r}{\gamma_r}\dot{\hat k}_r.
+\dot V={}&e^T(A_m^TP+PA_m)e\notag\\
+&-2e^TPB\tilde K_x^Tx
+-2e^TPB\tilde k_r r\notag\\
+&+2\operatorname{tr}\left(
+\tilde K_x^T\Gamma_x^{-1}\dot{\hat K}_x
+\right)\notag\\
+&+2\operatorname{tr}\left(
+\tilde k_r\gamma_r^{-1}\dot{\hat k}_r^T
+\right).
 \end{align}
-Aplicando \eqref{eq:lyapeq}:
-\begin{align}\label{eq:Vdotexpanded}
-    \dot V={}&-e^TQe
-    +2\tilde K_x^T\Big(\Gamma_x^{-1}\dot{\hat K}_x-xe^TPB\Big)\\
-    &+2\tilde k_r\Big(\frac{\dot{\hat k}_r}{\gamma_r}-re^TPB\Big).
+
+Aplicando la ecuación de Lyapunov
+$A_m^TP+PA_m=-Q$ y agrupando términos:
+
+\begin{align}
+\dot V={}&-e^TQe\notag\\
+&+2\operatorname{tr}\left[
+\tilde K_x^T
+\left(
+\Gamma_x^{-1}\dot{\hat K}_x-xe^TPB
+\right)
+\right]\notag\\
+&+2\operatorname{tr}\left[
+\tilde k_r
+\left(
+\gamma_r^{-1}\dot{\hat k}_r-re^TPB
+\right)
+\right].
 \end{align}
-Los términos cruzados se cancelan con las siguientes leyes:
+
+Para cancelar los términos cruzados, se establecen
+las siguientes leyes de adaptación:
+
 \begin{equation}\label{eq:adapt}
-    \boxed{\begin{aligned}
-        \dot{\hat K}_x&=\Gamma_x x\,(e^TPB),\\
-        \dot{\hat k}_r&=\gamma_r r\,(e^TPB).
-    \end{aligned}}
+\boxed{
+\begin{aligned}
+\dot{\hat K}_x&=\Gamma_xxe^TPB\\
+\dot{\hat k}_r&=\gamma_rre^TPB
+\end{aligned}
+}
 \end{equation}
-Nótese que los signos son \textbf{positivos} porque se ha definido $e=x_m-x$.
-Sustituyendo \eqref{eq:adapt} en \eqref{eq:Vdotexpanded},
+
+Sustituyendo estas leyes en la derivada de
+la función candidata, resulta:
+
 \begin{equation}\label{eq:Vdot}
-    \boxed{\dot V=-e^TQe\leq0.}
+\boxed{\dot V=-e^TQe\leq0}
 \end{equation}
 
-\subsection{Alcance de la demostración}
-Para las \emph{condiciones de acoplamiento exactas} y una referencia acotada, la desigualdad \eqref{eq:Vdot} garantiza acotamiento del error y de los errores paramétricos. Además, usando la estabilidad de $A_m$, las señales permanecen acotadas y, bajo las condiciones habituales de regularidad y acotamiento de $\dot e$, puede aplicarse el lema de Barbalat para concluir $e(t)\to0$ cuando $t\to\infty$. Esta conclusión no implica necesariamente que las ganancias estimadas converjan a las ganancias ideales: la convergencia paramétrica puede requerir excitación persistente.
+Por lo tanto, bajo las condiciones de acoplamiento
+exacto y las hipótesis de estabilidad del modelo,
+la función candidata de Lyapunov es no creciente.
 
-\textbf{Limitación para los datos del taller.} Como $\Delta_A\neq0$ y $\Delta_B\neq0$, la dinámica real del error contiene términos adicionales:
-\begin{equation}\label{eq:realerror}
-    \boxed{\begin{aligned}
-        \dot e&=A_me-B(\tilde K_x^Tx+\tilde k_rr)\\
-              &\quad+\Delta_Ax+\Delta_Br.
-    \end{aligned}}
+
+\subsection{Demostración de estabilidad y convergencia del error}
+
+El objetivo es demostrar que las leyes de adaptación
+obtenidas estabilizan el sistema y garantizan que
+el error de seguimiento tienda a cero cuando
+$t\rightarrow\infty$.
+
+\subsubsection{Estabilidad mediante Lyapunov}
+
+Considerando las condiciones de acoplamiento exactas,
+la función candidata de Lyapunov es definida positiva,
+ya que $P$, $\Gamma_x$ y $\gamma_r$ son positivos.
+
+Al sustituir las leyes de adaptación en la derivada
+de la función candidata, se obtuvo:
+
+\begin{equation}
+    \boxed{\dot V=-e^TQe\leq0}
 \end{equation}
-Con las mismas leyes adaptativas se obtiene
-\begin{equation}\label{eq:realVdot}
-    \boxed{\dot V=-e^TQe+2e^TP(\Delta_Ax+\Delta_Br).}
+
+Dado que $Q$ es definida positiva, se garantiza que
+$\dot V$ es semidefinida negativa y, por tanto, la
+función de Lyapunov es no creciente:
+
+\begin{equation}
+    V(t)\leq V(0)
 \end{equation}
-El segundo término puede tener cualquier signo. Por tanto, \emph{con los datos redondeados del taller la demostración anterior no garantiza por sí sola que $e(t)\to0$}, aunque sí describe correctamente el caso de acoplamiento ideal.
+
+Como $V$ contiene términos cuadráticos positivos
+del error de seguimiento y de los errores de las
+ganancias, se concluye que dichas variables
+permanecen acotadas.
+
+Por tanto, se garantiza la estabilidad del sistema
+de error y adaptación en el sentido de Lyapunov.
+
+\subsubsection{Convergencia del error de seguimiento}
+
+Para demostrar que el error converge a cero,
+se integra la derivada de la función de Lyapunov:
+
+\begin{equation}
+    V(t)-V(0)=-\int_0^t e^TQe\,d\tau
+\end{equation}
+
+Despejando:
+
+\begin{equation}
+    \int_0^t e^TQe\,d\tau=V(0)-V(t)
+\end{equation}
+
+Como $V(t)\geq0$, se tiene:
+
+\begin{equation}
+    \boxed{
+    \int_0^\infty e^TQe\,dt\leq V(0)<\infty
+    }
+\end{equation}
+
+Además, dado que $Q$ es definida positiva:
+
+\begin{equation}
+    e^TQe\geq\lambda_{\min}(Q)\|e\|^2
+\end{equation}
+
+Por lo tanto:
+
+\begin{equation}
+    \int_0^\infty \|e(t)\|^2\,dt<\infty
+\end{equation}
+
+Considerando que $A_m$ es estable y la referencia
+$r(t)$ es acotada, los estados del modelo de
+referencia permanecen acotados.
+
+Asimismo, el acotamiento del error y de las
+ganancias adaptativas permite establecer que
+los estados de la planta, la señal de control
+y la derivada del error permanecen acotados.
+
+De esta manera, $e(t)$ es uniformemente continuo
+y puede aplicarse el lema de Barbalat, obteniendo:
+
+\begin{equation}
+    \boxed{\lim_{t\rightarrow\infty}e(t)=0}
+\end{equation}
+
+Por consiguiente, bajo las condiciones de
+acoplamiento exactas, las leyes de adaptación
+garantizan que el error de seguimiento converge
+asintóticamente a cero, logrando que los estados
+de la planta sigan los del modelo de referencia.
+
+
 
 \section{Implementación numérica en MATLAB}
 \subsection{Estados aumentados y condiciones iniciales}
@@ -308,7 +459,21 @@ La asignación utilizada es
 \end{equation}
 Se utilizó el vector inicial nulo $z(0)=0_{13\times1}$ y el integrador \texttt{ode15s}, apropiado para explorar sistemas con escalas temporales muy diferentes. Las simulaciones se ejecutaron por separado para una referencia escalón y otra de tren de pulsos. Como la impresión numérica proporcionada no incluye el tiempo final ni los parámetros temporales y amplitudes de estas señales, dichos valores deben consultarse directamente en el script antes de describirlos cuantitativamente en el texto o las figuras.
 
-La ganancia de adaptación vectorial y escalar se parametriza mediante $\Gamma_x$ y $\gamma_r$; se recomienda reportar aquí los valores exactos que quedaron definidos en la versión de MATLAB ejecutada. La estructura central de la función de dinámica es:
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/respuesta_escalon.eps}
+    \caption{Respuesta temporal de los cuatro estados del avión ante una entrada escalón, comparando el comportamiento de la planta controlada mediante MRAC con el modelo de referencia}
+    \label{respuesta_escalon}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/respuesta_pulsos.eps}
+    \caption{Respuesta temporal de los cuatro estados del avión ante una entrada de pulsos, comparando el comportamiento de la planta controlada mediante MRAC con el modelo de referencia}
+    \label{respuesta_pulsos}
+\end{figure}
+
+La ganancia de adaptación vectorial y escalar se parametriza mediante $\Gamma_x$ y $\gamma_r$; siendo 100 para ambas. La estructura central de la función de dinámica es:
 
 \noindent\begin{minipage}{\linewidth}
 \begin{lstlisting}[style=matlab]
@@ -337,7 +502,7 @@ La norma del error de estados en el instante final es
 \begin{equation}
     \norm{e(t_f)}_2=0.19759963.
 \end{equation}
-Por consiguiente, el error al final de la simulación \emph{no} es nulo. Como $\norm{e}_2$ combina estados con magnitudes y unidades distintas, resulta conveniente complementar esta métrica con la gráfica de $e_\theta(t)=\theta_m(t)-\theta(t)$ para evaluar específicamente el control del cabeceo.
+Por consiguiente, el error al final de la simulación \emph{no} es nulo.
 
 La matriz instantánea de lazo cerrado evaluada con las ganancias finales fue
 \begin{equation}\label{eq:aclstep}
@@ -355,10 +520,28 @@ Comparándola con $A_m$ se obtuvo
 \begin{equation}\label{eq:stepResid}
     \boxed{\norm{A_m-(A+B\hat K_x^T(t_f))}_F=2267.3457.}
 \end{equation}
-La diferencia es muy superior al residuo obtenido con $K_x^*$ en la sección~\ref{eq:residuosnumeric}. Esto muestra que la simulación no terminó en un estado de acoplamiento cercano al ideal, aunque la norma del error de estados final resultó comparativamente moderada. No debe confundirse seguimiento transitorio con identificación exacta de ganancias.
+ Esto muestra que la simulación no terminó en un estado de acoplamiento cercano al ideal, aunque la norma del error de estados final resultó comparativamente moderada. No debe confundirse seguimiento transitorio con identificación exacta de ganancias.
 
-\figuraopcional{figuras/estados_escalon.png}{Comparación temporal entre estados de la planta $x$ y del modelo de referencia $x_m$ para el ensayo de escalón.}{fig:estados_escalon}
-\figuraopcional{figuras/ganancias_escalon.png}{Evolución temporal de $\hat K_x(t)$ y $\hat k_r(t)$ bajo referencia escalón.}{fig:ganancias_escalon}
+ \begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/error_escalon.eps}
+    \caption{Error de seguimiento de los cuatro estados del avión ante una entrada escalón.} 
+    \label{error_escalon}
+\end{figure}
+
+ \begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/zoom_error_escalon.eps}
+    \caption{Zoom del error de seguimiento de los cuatro estados del avión ante una entrada escalón, instante inicial}   
+    \label{zoom_error_escalon}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/ganancias_escalon.eps}
+    \caption{Ganancias de control para los cuatro estados del avión ante una entrada escalón.} 
+    \label{ganancias_escalon}
+\end{figure}
 
 \subsection{Ensayo 2: tren de pulsos}
 Los valores finales reportados fueron
@@ -372,7 +555,7 @@ La norma del error final fue
 \begin{equation}
     \norm{e(t_f)}_2=0.20744758.
 \end{equation}
-La matriz instantánea de lazo cerrado, con las ganancias finales congeladas, fue
+La matriz instantánea de lazo cerrado, con las ganancias finales, fue
 \begin{equation}\label{eq:aclpulse}
     \begin{gathered}
     A+B\hat K_x^T(t_f)\\
@@ -388,10 +571,28 @@ La discrepancia respecto a la matriz de referencia fue
 \begin{equation}\label{eq:pulseResid}
     \boxed{\norm{A_m-(A+B\hat K_x^T(t_f))}_F=2266.8403.}
 \end{equation}
-Este valor es ligeramente menor que el obtenido con el escalón, pero continúa siendo alto. La mayor variación observada en algunas componentes de $\hat K_x$ no implica, por sí sola, una mejora suficiente del acoplamiento ni de la convergencia del error.
+Este valor es ligeramente menor que el obtenido con el escalón, pero continúa siendo alto. 
 
-\figuraopcional{figuras/estados_pulsos.png}{Comparación temporal entre los estados de planta y referencia ante un tren de pulsos.}{fig:estados_pulsos}
-\figuraopcional{figuras/ganancias_pulsos.png}{Evolución temporal de las ganancias adaptativas ante un tren de pulsos.}{fig:ganancias_pulsos}
+ \begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/error_pulsos.eps}
+    \caption{Error de seguimiento de los cuatro estados del avión ante una entrada de pulsos.} 
+    \label{error_escalon}
+\end{figure}
+
+ \begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/zoom_error_pulsos.eps}
+    \caption{Zoom del error de seguimiento de los cuatro estados del avión ante una entrada de pulsos, en el pulso t = 10s} 
+    \label{zoom_error_pulsos}
+\end{figure}
+
+\begin{figure}[h]
+    \centering
+    \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/ganancias_pulsos.eps}
+    \caption{Ganancias de control para los cuatro estados del avión ante una entrada de pulsos.}  
+    \label{ganancias_escalon}
+\end{figure}
 
 \subsection{Comparación cuantitativa de resultados}
 \begin{table}[!t]
@@ -409,34 +610,131 @@ $\norm{A_m-(A+B\hat K_x^T(t_f))}_F$ & $2267.3457$ & $2266.8403$\\
 \bottomrule
 \end{tabularx}
 \end{table}
-En comparación, las ganancias de ajuste ideales aproximadas dan $k_r^*\approx322.6504$ y $\norm{\Delta_A}_F\approx0.07817$. Las normas del error final de ambas simulaciones son del mismo orden; el ensayo con escalón presenta un error final ligeramente menor, mientras que el tren de pulsos presenta una discrepancia de matrices ligeramente menor. Estas observaciones corresponden a un instante final y no prueban por sí mismas convergencia asintótica.
+
+La Tabla \ref{tab:comparacion} reúne los resultados obtenidos en las simulaciones del controlador MRAC directo para las entradas escalón y tren de pulsos. Se comparan la ganancia adaptativa final \(\hat k_r\), la norma del error de seguimiento y la diferencia entre la matriz de lazo cerrado y la matriz del modelo de referencia \(A_m\).
+
+Los resultados muestran que ambas entradas producen valores finales similares, con un error de seguimiento ligeramente menor para el escalón. Sin embargo, las ganancias obtenidas aún difieren de las ideales aproximadas y la diferencia entre las matrices sigue siendo considerable. Esto indica que, aunque el controlador logra un seguimiento cercano al modelo, las ganancias adaptativas no necesariamente convergen a sus valores ideales durante el tiempo de simulación.
 
 \subsection{Análisis adicional de polos de las matrices finales}
 Como comprobación adicional, es posible calcular los autovalores de $A+B\hat K_x^T(t_f)$ utilizando las ganancias finales \emph{redondeadas} que se imprimieron en MATLAB. Esta operación equivale a congelar momentáneamente las ganancias, y no debe confundirse con un análisis completo de estabilidad del sistema adaptativo, cuyas ganancias cambian con el tiempo.
-\begin{table}[!t]
-\centering
-\caption{Autovalores aproximados de las matrices con ganancias finales congeladas.}
-\label{tab:autovalores_finales}
-\small
-\begin{tabularx}{\linewidth}{@{}lX@{}}
-\toprule
-\textbf{Ensayo} & \textbf{Autovalores aproximados}\\
-\midrule
-Escalón & $-1053.9573,\ -3.3442,\ -0.00858\pm0.10252\,\mathrm{i}$\\
-Tren de pulsos & $-1234.1071,\ -12.4768,\ -0.03892,\ +0.02880$\\
-\bottomrule
-\end{tabularx}
-\end{table}
-En el caso del escalón los polos de la matriz congelada tienen parte real negativa, aunque aparece un par complejo débilmente amortiguado. En el caso del tren de pulsos aparece un polo real positivo con las ganancias finales redondeadas. Esto advierte que \emph{mantener fijas} estas ganancias del segundo ensayo no produciría una matriz Hurwitz. Sin embargo, no basta para afirmar que toda la trayectoria adaptativa sea inestable, porque $\hat K_x(t)$ evoluciona durante la simulación.
 
-\subsection{Interpretación de las diferencias entre los ensayos}
-\begin{enumerate}[leftmargin=*,itemsep=4pt]
-\item \textbf{Seguimiento frente a convergencia paramétrica.} Un error relativamente pequeño en un instante no exige que $\hat K_x$ y $\hat k_r$ hayan convergido a sus valores ideales. La adaptación depende de la información presente en $x(t)$, $r(t)$ y $e(t)$.
-\item \textbf{Excitación de la referencia.} El tren de pulsos modifica repetidamente la entrada y puede excitar componentes diferentes del sistema, pero no es suficiente afirmar que aporta excitación persistente sin verificar sus propiedades y el intervalo temporal.
-\item \textbf{Influencia de los residuos.} Los errores no nulos $\Delta_A$ y $\Delta_B$ impiden aplicar literalmente la prueba $\dot V=-e^TQe$ al modelo numérico tal como está definido.
-\item \textbf{Horizonte de simulación y selección de ganancias.} Los resultados finales también dependen del horizonte, las condiciones iniciales y los parámetros $\Gamma_x$, $\gamma_r$ y $Q$. Sin los gráficos completos no es posible establecer si el error se encontraba decreciendo, oscilando o creciendo cerca de $t_f$.
-\end{enumerate}
+\subsection{Comparación con simulación en Simulink}
 
+La planta estudiada en MATLAB se simuló también con el bloque de control
+adaptativo con modelo de referencia (MRAC) de Simulink Control Design.
+El esquema de la Figura~\ref{fig:Esquema simulink} se utilizó en tres
+ensayos con distintas referencias: un tren de pulsos que alterna entre
+0 y 2 cada \(5\,\mathrm{s}\), y dos señales sinusoidales con frecuencias
+angulares de \(1\,\mathrm{rad/s}\) y \(10\,\mathrm{rad/s}\).
+
+En los tres ensayos se emplearon \(Q=100I_4\), \(\Gamma_x=100I_4\) y
+\(\gamma_r=100\), donde \(I_4\) es la matriz identidad de orden cuatro.
+Esta sintonización se eligió por el buen seguimiento observado durante
+las iteraciones de ajuste.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/Simulink1.eps}
+    \caption{Esquema del sistema de control adaptativo implementado en Simulink.}
+    \label{fig:Esquema simulink}
+\end{figure}
+
+\paragraph{Tren de pulsos.}
+
+La Figura~\ref{fig:simulink-pulsos-respuesta} muestra el seguimiento del
+ángulo de cabeceo (\textit{pitch}) durante los intervalos de referencia
+constante y el transitorio que sigue a cada cambio de nivel.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/Fig1.eps}
+    \caption{Referencia de tren de pulsos y respuesta del ángulo de cabeceo.}
+    \label{fig:simulink-pulsos-respuesta}
+\end{figure}
+
+Para examinar el esfuerzo de control asociado con este seguimiento,
+las Figuras~\ref{fig:simulink-pulsos-control} y
+\ref{fig:simulink-pulsos-control-detalle} muestran la señal \(u(t)\) en
+Simulink durante el ensayo completo y en una vista ampliada del
+transitorio, respectivamente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/Fig2.eps}
+    \caption{Señal de control \(u(t)\) ante el tren de pulsos en Simulink.}
+    \label{fig:simulink-pulsos-control}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/Fig3.eps}
+    \caption{Vista ampliada de la señal de control en Simulink.}
+    \label{fig:simulink-pulsos-control-detalle}
+\end{figure}
+
+Para el mismo tren de pulsos, la Figura~\ref{fig:contmat} presenta la
+señal de control obtenida mediante el procedimiento iterativo en MATLAB.
+La Figura~\ref{fig:contmat15} amplía el transitorio alrededor de
+\(t=15\,\mathrm{s}\) para comparar la forma y el decaimiento del pico
+con el detalle de Simulink.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/control.eps}
+    \caption{Señal de control \(u(t)\) ante el tren de pulsos, obtenida
+    mediante el procedimiento iterativo en MATLAB.}
+    \label{fig:contmat}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/pico15.eps}
+    \caption{Detalle de la señal de control en MATLAB alrededor de
+    \(t=15\,\mathrm{s}\).}
+    \label{fig:contmat15}
+\end{figure}
+
+Las señales de MATLAB y Simulink coinciden visualmente en sus rasgos
+principales. En ambos casos, la aplicación del primer pulso produjo
+un pico de aproximadamente \(5000\) en la magnitud de \(u(t)\).
+En los flancos ascendentes posteriores, los picos fueron del orden
+de \(600\) y la señal decayó rápidamente después de cada máximo.
+Las vistas ampliadas muestran también una forma similar del transitorio
+alrededor de \(t=15\,\mathrm{s}\). Las magnitudes se expresan en la
+escala de \(u(t)\), cuya unidad física se desconoce.
+
+El transitorio inicial exige el mayor esfuerzo de control del ensayo.
+Si la acción solicitada supera el límite del actuador, la señal
+aplicada a la planta se recorta. Este efecto podría aumentar el error
+de seguimiento durante el primer pulso y modificar la evolución de las
+ganancias adaptativas.
+
+\paragraph{Referencias sinusoidales.}
+
+Los ensayos con referencias sinusoidales permiten comparar el seguimiento
+ante dos velocidades de variación de la referencia. Las
+Figuras~\ref{fig:sin1rad} y~\ref{fig:sin10rad} muestran la respuesta a
+\(1\,\mathrm{rad/s}\) y \(10\,\mathrm{rad/s}\), respectivamente.
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/Fig4.eps}
+    \caption{Respuesta ante una referencia sinusoidal de
+    \(1\,\mathrm{rad/s}\).}
+    \label{fig:sin1rad}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\linewidth]{Tarea2/Informe/Imagenes/Fig5.eps}
+    \caption{Respuesta ante una referencia sinusoidal de
+    \(10\,\mathrm{rad/s}\).}
+    \label{fig:sin10rad}
+\end{figure}
+
+Con la sintonización empleada, la comparación visual muestra que el
+ángulo de cabeceo sigue más de cerca la referencia a \(1\,\mathrm{rad/s}\)
+que a \(10\,\mathrm{rad/s}\).
 \section{Conclusiones}
 \begin{enumerate}[leftmargin=*,itemsep=5pt]
 \item El modelo de referencia es asintóticamente estable, porque sus cuatro autovalores tienen parte real negativa. Las escalas temporales muy distintas justifican prestar atención a la elección del integrador numérico.
@@ -446,7 +744,6 @@ En el caso del escalón los polos de la matriz congelada tienen parte real negat
 \item Las discrepancias $\norm{A_m-A-B\hat K_x^T(t_f)}_F$ fueron aproximadamente $2267.35$ y $2266.84$, respectivamente. Por ello no puede concluirse que las ganancias adaptativas finales hayan reproducido la dinámica deseada.
 \item Para evaluar el desempeño del controlador en el objetivo principal del taller conviene observar individualmente $\theta(t)$, $\theta_m(t)$ y $e_\theta(t)$, además de la estabilidad numérica y de la evolución temporal de todas las ganancias.
 \end{enumerate}
-
 
 \begin{thebibliography}{9}
 \bibitem{sofrony2021}
