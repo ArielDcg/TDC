@@ -447,14 +447,6 @@ En el caso del escalón los polos de la matriz congelada tienen parte real negat
 \item Para evaluar el desempeño del controlador en el objetivo principal del taller conviene observar individualmente $\theta(t)$, $\theta_m(t)$ y $e_\theta(t)$, además de la estabilidad numérica y de la evolución temporal de todas las ganancias.
 \end{enumerate}
 
-\section*{Recomendaciones para completar las figuras}
-En el proyecto de Overleaf se debe crear una carpeta \texttt{figuras/} y cargar allí cuatro imágenes con los nombres empleados en las llamadas de las secciones de resultados. Las imágenes deben salir de las simulaciones efectivamente ejecutadas en MATLAB; los recuadros del archivo actual son marcadores de posición, \emph{no} gráficas sintéticas ni resultados calculados nuevamente. Para exportar la figura activa desde MATLAB:
-\begin{lstlisting}[style=matlab]
-if ~exist('figuras','dir'), mkdir('figuras'); end
-exportgraphics(gcf,'figuras/estados_escalon.png', ...
-    'Resolution',300);
-\end{lstlisting}
-El nombre del archivo debe modificarse para las restantes figuras, después de activar cada figura correspondiente. Es aconsejable incluir también gráficos del error de cabeceo y del control $u(t)$ si se dispone de ellos.
 
 \begin{thebibliography}{9}
 \bibitem{sofrony2021}
