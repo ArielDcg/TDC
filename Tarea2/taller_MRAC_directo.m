@@ -34,7 +34,7 @@ if norm(R_A,'fro') > 1e-8 || norm(R_B,2) > 1e-8
 end
 
 %% 3. Ecuacion de Lyapunov: Am''*P + P*Am = -Q
-Q = 100*eye(4);
+Q = 50*eye(4);
 P = lyap(Am',Q);              % requiere Control System Toolbox
 fprintf('Autovalores de P:\n'); disp(eig(P));
 fprintf('Residuo de Lyapunov: %.3e\n',norm(Am'*P+P*Am+Q,'fro'));
@@ -57,13 +57,13 @@ for j=1:4
 end
 
 %% 5. MRAC directo: tasas de adaptacion (ajustables)
-GammaX = 100*eye(4);               % simetrica definida positiva
-gammaR = 100;                 % positiva
+GammaX = 50*eye(4);               % simetrica definida positiva
+gammaR = 50;                 % positiva
 % Estado aumentado z=[x(4); xm(4); Khat_x(4); khat_r(1)]
 z0 = zeros(13,1);             % planta, modelo y ganancias en cero
 entradas = {rEscalon, rPulsos};
 etiquetas = {'Escalon', 'Tren de pulsos'};
-u = cell(1,2);        % Guardar las dos señales de control
+uT = cell(1,2);        % Guardar las dos señales de control
 tiempos = cell(1,2);  % Guardar los tiempos de cada ensayo
 
 
@@ -78,7 +78,7 @@ for ensayo=1:2
     krhat = Z(:,13);
      % Evaluar la referencia en todos los tiempos
     r_valores = arrayfun(r,t);
-    u{ensayo} = diag(Khat*x' + krhat*r_valores');
+    uT{ensayo} = sum(Khat.*x, 2) + krhat.*r_valores;
     tiempos{ensayo} = t;
     %% Estados reales y deseados
     figure('Name',['Seguimiento - ',etiquetas{ensayo}]);
@@ -120,14 +120,14 @@ end
 figure;
 
 subplot(2,1,1)
-plot(tiempos{1},u{1},'b','LineWidth',1.2)
+plot(tiempos{1},uT{1},'b','LineWidth',1.2)
 grid on
 title('Control u(t) - Escalon')
 xlabel('Tiempo (s)')
 ylabel('u(t)')
 
 subplot(2,1,2)
-plot(tiempos{2},u{2},'r','LineWidth',1.2)
+plot(tiempos{2},uT{2},'r','LineWidth',1.2)
 grid on
 title('Control u(t) - Tren de pulsos')
 xlabel('Tiempo (s)')
