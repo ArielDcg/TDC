@@ -34,7 +34,7 @@
 \title{%
     \includegraphics[height=3cm]{Tarea2/Informe/Imagenes/LogoUnalpng.eps}\\[0.35em]
     \textbf{Control adaptativo con modelo de referencia\\(MRAC directo)}\\[0.2em]
-    {\large Aeronave JAXA Mu-pal: dinámica longitudinal}%
+    {\large Aeronave JAXA Mu-pal: dinámica pitch}%
 }
 \author{%
     \IEEEauthorblockN{Samuel David Negrete Lancheros\IEEEauthorrefmark{1},
@@ -55,11 +55,11 @@
 \maketitle
 
 \begin{abstract}
-Se estudia un controlador adaptativo directo con modelo de referencia (MRAC) para la dinámica longitudinal de la aeronave JAXA Mu-pal, con el objetivo de regular el ángulo de cabeceo y mantener una evolución estable de los estados. Se comprueba la estabilidad del modelo de referencia, se obtienen ganancias de acoplamiento aproximadas mediante pseudoinversa y se derivan las leyes adaptativas utilizando una función de Lyapunov. Se analizan dos ensayos numéricos implementados en MATLAB, uno con entrada escalón y otro con tren de pulsos. Los residuos de acoplamiento son pequeños, pero diferentes de cero; además, las ganancias adaptadas al final de las simulaciones no reproducen la matriz de referencia. Por ello se distinguen las garantías teóricas, válidas bajo acoplamiento exacto, de las observaciones obtenidas para el problema numérico concreto.
+Se diseñó un controlador adaptativo directo con modelo de referencia (MRAC) para el seguimiento del ángulo de cabeceo de la aeronave JAXA Mu-pal. Las leyes de adaptación se derivaron mediante el método de Lyapunov y, bajo acoplamiento exacto, se demostró que el error de seguimiento tiende a cero asintóticamente. Este se probo ante un escalón y un tren de pulsos en MATLAB y Simulink donde se produjeron señales de control similares, con el mayor pico al aplicar el primer pulso. 
 \end{abstract}
 
 \section{Objetivos}
-\textbf{Objetivo general.} Diseñar y evaluar un controlador MRAC directo para el sistema longitudinal JAXA Mu-pal a partir de un modelo de referencia establecido.
+\textbf{Objetivo general.} Diseñar y evaluar un controlador MRAC directo para el sistema pitch JAXA Mu-pal a partir de un modelo de referencia establecido.
 
 \textbf{Objetivos específicos.}
 \begin{enumerate}[itemsep=2pt]
@@ -71,7 +71,7 @@ Se estudia un controlador adaptativo directo con modelo de referencia (MRAC) par
 \end{enumerate}
 
 \section{Modelo matemático de la aeronave}
-La dinámica longitudinal linealizada se representa como
+La dinámica pitch linealizada se representa como
 \begin{equation}\label{eq:planta}
     \dot x(t)=Ax(t)+Bu(t), \qquad
     x=\begin{bmatrix}u_x&u_z&\theta&q\end{bmatrix}^{T},
@@ -536,6 +536,9 @@ Comparándola con $A_m$ se obtuvo
     \label{zoom_error_escalon}
 \end{figure}
 
+Las gráficas de error, permiten observa la rapidez del sistema y la tendencia a cero para los cuatro estados, adicionalmente como se ve muestra mas adelante la señal de control para que el error de theta sea cero es muy alta.
+
+
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/ganancias_escalon.eps}
@@ -587,12 +590,16 @@ Este valor es ligeramente menor que el obtenido con el escalón, pero continúa 
     \label{zoom_error_pulsos}
 \end{figure}
 
+De la comparación con la respuesta al escalón se puede resaltar que para el primer pulso la respuesta de error, señal de control y  ganancia son muy altos a comparación de los pulsos posteriores.
+
 \begin{figure}[h]
     \centering
     \includegraphics[width=1\linewidth]{Tarea2/Informe/Imagenes/ganancias_pulsos.eps}
     \caption{Ganancias de control para los cuatro estados del avión ante una entrada de pulsos.}  
     \label{ganancias_escalon}
 \end{figure}
+
+Al observar las ganancias para el tren de pulsos, se puede evidenciar un comportamiento similar de las ganancias $K_{x1}$, $K_{x3}$, $K_{x4}$ y $K_{r}$ para cada pulso, sin embargo para $K_{x2}$ se nota una pequeña deriva, lo que concuerda con el hecho de que  el error de modelo no es exactamente cero y como el modelo de la ley de control es un integrador, ese valor de error se ira sumando.  
 
 \subsection{Comparación cuantitativa de resultados}
 \begin{table}[!t]
